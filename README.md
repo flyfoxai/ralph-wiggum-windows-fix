@@ -1,12 +1,94 @@
-# Ralph Wiggum Plugin
+# Ralph Wiggum Plugin - Windows Platform Fixes
 
-Implementation of the Ralph Wiggum technique for iterative, self-referential AI development loops in Claude Code.
+[中文文档](README_CN.md) | English
 
-## What is Ralph?
+## 🎯 About This Repository
+
+This repository contains **Windows platform fixes** for the Ralph Wiggum plugin, which is part of [Claude Code](https://github.com/anthropics/claude-code).
+
+### Original Source
+
+- **Original Plugin**: [anthropics/claude-code/plugins/ralph-wiggum](https://github.com/anthropics/claude-code/tree/main/plugins/ralph-wiggum)
+- **Author**: Daisy Hollman (Anthropic)
+- **Technique Creator**: [Geoffrey Huntley](https://ghuntley.com/ralph/)
+
+### Why Not Forked?
+
+The Ralph Wiggum plugin is part of the main Claude Code repository, not a standalone repository. Since it's a subdirectory within a larger monorepo, it cannot be forked independently. This repository was created to:
+
+1. **Provide immediate Windows fixes** for users experiencing issues
+2. **Document the fixes comprehensively** with detailed testing reports
+3. **Serve as a reference** for potential contribution back to the official repository
+4. **Enable easy installation** for Windows users without waiting for official updates
+
+### Purpose of This Repository
+
+This repository specifically addresses **two critical Windows platform issues**:
+
+1. **Stop Hook Window Popup** - Fixed the issue where Windows would open `stop-hook.sh` in a text editor instead of executing it
+2. **Argument Parsing Failure** - Fixed "command not found" errors when using command-line flags on Windows
+
+**Status**: ✅ Fully tested and verified through 5 complete iterations with 100% success rate.
+
+---
+
+## 🚀 Quick Installation for Claude Code
+
+### Prerequisites
+
+- **Claude Code** installed
+- **PowerShell 7.x** (pwsh) - [Download here](https://github.com/PowerShell/PowerShell/releases)
+- **Windows 10/11**
+
+### Installation Steps
+
+#### Option 1: Manual Installation (Recommended)
+
+1. **Locate your Claude Code plugins directory**:
+   ```
+   C:\Users\<YourUsername>\.claude\plugins\marketplaces\claude-code-plugins\plugins\ralph-wiggum\
+   ```
+
+2. **Backup the original plugin** (optional but recommended):
+   ```powershell
+   cd C:\Users\<YourUsername>\.claude\plugins\marketplaces\claude-code-plugins\plugins\
+   Rename-Item ralph-wiggum ralph-wiggum.backup
+   ```
+
+3. **Clone this repository**:
+   ```powershell
+   cd C:\Users\<YourUsername>\.claude\plugins\marketplaces\claude-code-plugins\plugins\
+   git clone https://github.com/flyfoxai/ralph-wiggum-windows-fix.git ralph-wiggum
+   ```
+
+4. **Restart Claude Code** to reload the plugin
+
+#### Option 2: Download and Replace
+
+1. Download the latest release from [Releases](https://github.com/flyfoxai/ralph-wiggum-windows-fix/releases)
+2. Extract the files
+3. Replace the contents of your Ralph Wiggum plugin directory with the extracted files
+4. Restart Claude Code
+
+### Verification
+
+After installation, verify the fix is working:
+
+```powershell
+# In Claude Code, run:
+/ralph-loop "Test Windows fix" --max-iterations 2
+```
+
+You should see:
+- ✅ No popup windows
+- ✅ No "command not found" errors
+- ✅ Proper iteration loop working
+
+---
+
+## 📋 What is Ralph Wiggum?
 
 Ralph is a development methodology based on continuous AI agent loops. As Geoffrey Huntley describes it: **"Ralph is a Bash loop"** - a simple `while true` that repeatedly feeds an AI agent a prompt file, allowing it to iteratively improve its work until completion.
-
-The technique is named after Ralph Wiggum from The Simpsons, embodying the philosophy of persistent iteration despite setbacks.
 
 ### Core Concept
 
@@ -24,156 +106,144 @@ This plugin implements Ralph using a **Stop hook** that intercepts Claude's exit
 # 5. Repeat until completion
 ```
 
-The loop happens **inside your current session** - you don't need external bash loops. The Stop hook in `hooks/stop-hook.sh` creates the self-referential feedback loop by blocking normal session exit.
+The loop happens **inside your current session** - you don't need external bash loops. The Stop hook creates the self-referential feedback loop by blocking normal session exit.
 
-This creates a **self-referential feedback loop** where:
-- The prompt never changes between iterations
-- Claude's previous work persists in files
-- Each iteration sees modified files and git history
-- Claude autonomously improves by reading its own past work in files
+---
 
-## Quick Start
+## 🔧 What's Fixed
 
-```bash
-/ralph-loop "Build a REST API for todos. Requirements: CRUD operations, input validation, tests. Output <promise>COMPLETE</promise> when done." --completion-promise "COMPLETE" --max-iterations 50
+### Issue 1: Stop Hook Window Popup ✅
+
+**Problem**: On Windows, the original plugin would cause a `stop-hook.sh` file window to pop up repeatedly because Windows cannot natively execute `.sh` files.
+
+**Solution**:
+- Created PowerShell version: `hooks/stop-hook.ps1`
+- Updated `hooks/hooks.json` for platform-specific hooks
+- Windows now uses PowerShell, macOS/Linux use Bash
+
+**Verification**: 5 iterations, 0 popup windows
+
+### Issue 2: Argument Parsing Failure ✅
+
+**Problem**: Git Bash on Windows would split multi-line arguments, causing errors like:
+```
+/usr/bin/bash: line 3: --completion-promise: command not found
 ```
 
-Claude will:
-- Implement the API iteratively
-- Run tests and see failures
-- Fix bugs based on test output
-- Iterate until all requirements met
-- Output the completion promise when done
+**Solution**:
+- Created PowerShell version: `scripts/setup-ralph-loop.ps1`
+- Implemented native PowerShell parameter parsing
+- Added support for Chinese characters and special characters
 
-## Commands
+**Verification**: 5 iterations, 0 parsing errors
 
-### /ralph-loop
+---
 
-Start a Ralph loop in your current session.
+## 📖 Usage
 
-**Usage:**
+### Basic Commands
+
+#### Start a Ralph Loop
+
 ```bash
 /ralph-loop "<prompt>" --max-iterations <n> --completion-promise "<text>"
 ```
 
-**Options:**
+**Options**:
 - `--max-iterations <n>` - Stop after N iterations (default: unlimited)
 - `--completion-promise <text>` - Phrase that signals completion
 
-### /cancel-ralph
+**Example**:
+```bash
+/ralph-loop "Build a REST API for todos. Requirements: CRUD operations, input validation, tests. Output <promise>COMPLETE</promise> when done." --completion-promise "COMPLETE" --max-iterations 50
+```
 
-Cancel the active Ralph loop.
+#### Cancel a Ralph Loop
 
-**Usage:**
 ```bash
 /cancel-ralph
 ```
 
-## Prompt Writing Best Practices
+### Best Practices
 
-### 1. Clear Completion Criteria
+1. **Always set `--max-iterations`** as a safety net
+2. **Use clear completion criteria** in your prompts
+3. **Include verification steps** (tests, linters)
+4. **Start with small iteration limits** (10-20) for testing
 
-❌ Bad: "Build a todo API and make it good."
+For detailed best practices, see [WINDOWS-FIXES.md](WINDOWS-FIXES.md).
 
-✅ Good:
-```markdown
-Build a REST API for todos.
+---
 
-When complete:
-- All CRUD endpoints working
-- Input validation in place
-- Tests passing (coverage > 80%)
-- README with API docs
-- Output: <promise>COMPLETE</promise>
-```
+## 📚 Documentation
 
-### 2. Incremental Goals
+- **[WINDOWS-FIXES.md](WINDOWS-FIXES.md)** - Detailed fix documentation and troubleshooting
+- **[VERIFICATION-REPORT.md](VERIFICATION-REPORT.md)** - Test verification report
+- **[FINAL-REPORT.md](FINAL-REPORT.md)** - Comprehensive testing report
+- **[EXECUTIVE-SUMMARY.md](EXECUTIVE-SUMMARY.md)** - Executive summary
+- **[COMPLETION-REPORT.md](COMPLETION-REPORT.md)** - Final completion report
 
-❌ Bad: "Create a complete e-commerce platform."
+---
 
-✅ Good:
-```markdown
-Phase 1: User authentication (JWT, tests)
-Phase 2: Product catalog (list/search, tests)
-Phase 3: Shopping cart (add/remove, tests)
+## 🧪 Testing
 
-Output <promise>COMPLETE</promise> when all phases done.
-```
+This fix has been thoroughly tested:
 
-### 3. Self-Correction
+- **5 complete iterations** of the Ralph loop
+- **100% success rate** across all tests
+- **0 errors**, 0 popup windows
+- **Edge cases tested**: Long Chinese text, special characters, concurrent operations
+- **Stress tested**: Multiple iterations, file operations, state management
 
-❌ Bad: "Write code for feature X."
+Test scripts included:
+- `verify-fix.ps1` - Basic verification
+- `edge-case-test.ps1` - Edge case testing
+- `concurrent-test.ps1` - Concurrent operations
+- `final-validation.ps1` - Final validation
 
-✅ Good:
-```markdown
-Implement feature X following TDD:
-1. Write failing tests
-2. Implement feature
-3. Run tests
-4. If any fail, debug and fix
-5. Refactor if needed
-6. Repeat until all green
-7. Output: <promise>COMPLETE</promise>
-```
+---
 
-### 4. Escape Hatches
+## 🤝 Contributing
 
-Always use `--max-iterations` as a safety net to prevent infinite loops on impossible tasks:
+Contributions are welcome! If you find issues or have improvements:
 
-```bash
-# Recommended: Always set a reasonable iteration limit
-/ralph-loop "Try to implement feature X" --max-iterations 20
+1. Open an issue describing the problem
+2. Submit a pull request with your fix
+3. Ensure all tests pass
 
-# In your prompt, include what to do if stuck:
-# "After 15 iterations, if not complete:
-#  - Document what's blocking progress
-#  - List what was attempted
-#  - Suggest alternative approaches"
-```
+---
 
-**Note**: The `--completion-promise` uses exact string matching, so you cannot use it for multiple completion conditions (like "SUCCESS" vs "BLOCKED"). Always rely on `--max-iterations` as your primary safety mechanism.
+## 📄 License
 
-## Philosophy
+This project maintains the same license as the original Claude Code repository.
 
-Ralph embodies several key principles:
+See [LICENSE](LICENSE) for details.
 
-### 1. Iteration > Perfection
-Don't aim for perfect on first try. Let the loop refine the work.
+---
 
-### 2. Failures Are Data
-"Deterministically bad" means failures are predictable and informative. Use them to tune prompts.
+## 🙏 Credits
 
-### 3. Operator Skill Matters
-Success depends on writing good prompts, not just having a good model.
+- **Original Ralph Wiggum Technique**: [Geoffrey Huntley](https://ghuntley.com/ralph/)
+- **Original Plugin**: [Daisy Hollman](https://github.com/anthropics/claude-code) (Anthropic)
+- **Windows Fixes**: Created 2026-01-22 using Claude Code
+- **Testing & Verification**: Automated through Ralph loop (5 iterations)
 
-### 4. Persistence Wins
-Keep trying until success. The loop handles retry logic automatically.
+---
 
-## When to Use Ralph
+## 📞 Support
 
-**Good for:**
-- Well-defined tasks with clear success criteria
-- Tasks requiring iteration and refinement (e.g., getting tests to pass)
-- Greenfield projects where you can walk away
-- Tasks with automatic verification (tests, linters)
+- **Issues**: [GitHub Issues](https://github.com/flyfoxai/ralph-wiggum-windows-fix/issues)
+- **Original Plugin**: [Claude Code Repository](https://github.com/anthropics/claude-code)
+- **Ralph Technique**: [ghuntley.com/ralph](https://ghuntley.com/ralph/)
 
-**Not good for:**
-- Tasks requiring human judgment or design decisions
-- One-shot operations
-- Tasks with unclear success criteria
-- Production debugging (use targeted debugging instead)
+---
 
-## Real-World Results
+## 🔗 Related Links
 
-- Successfully generated 6 repositories overnight in Y Combinator hackathon testing
-- One $50k contract completed for $297 in API costs
-- Created entire programming language ("cursed") over 3 months using this approach
+- [Claude Code](https://github.com/anthropics/claude-code)
+- [Ralph Technique by Geoffrey Huntley](https://ghuntley.com/ralph/)
+- [Ralph Orchestrator](https://github.com/mikeyobrien/ralph-orchestrator)
 
-## Learn More
+---
 
-- Original technique: https://ghuntley.com/ralph/
-- Ralph Orchestrator: https://github.com/mikeyobrien/ralph-orchestrator
-
-## For Help
-
-Run `/help` in Claude Code for detailed command reference and examples.
+**Made with ❤️ for the Windows + Claude Code community**
