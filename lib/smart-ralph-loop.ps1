@@ -153,10 +153,94 @@ function Parse-TaskProgress {
     return $result
 }
 
+# Test completion criteria
+function Test-CompletionCriteria {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Output,
+
+        [Parameter(Mandatory=$false)]
+        [string]$CompletionPromise = "",
+
+        [Parameter(Mandatory=$true)]
+        [hashtable]$TaskProgress
+    )
+
+    # Check explicit completion signals
+    $completionSignals = @(
+        "task completed",
+        "all done",
+        "finished successfully",
+        "implementation complete",
+        "work is complete",
+        "completed successfully"
+    )
+
+    $hasCompletionSignal = $false
+    foreach ($signal in $completionSignals) {
+        if ($Output -match [regex]::Escape($signal)) {
+            $hasCompletionSignal = $true
+            break
+        }
+    }
+
+    # Check if completion promise is met
+    $meetsPromise = $false
+    if ($CompletionPromise -and $CompletionPromise.Trim() -ne "") {
+        $meetsPromise = $Output -match [regex]::Escape($CompletionPromise)
+    }
+
+    # Check task completion (100% progress)
+    $allTasksComplete = $TaskProgress.hasTasks -and ($TaskProgress.progress -eq 100)
+
+    # Check for blocking errors
+    $blockingErrorPatterns = @(
+        "fatal error",
+        "cannot proceed",
+        "blocked",
+        "failed to",
+        "error:",
+        "exception:"
+    )
+
+    $hasBlockingError = $false
+    foreach ($pattern in $blockingErrorPatterns) {
+        if ($Output -match "(?i)$pattern") {
+            $hasBlockingError = $true
+            break
+        }
+    }
+
+    # Determine if should complete
+    $shouldComplete = ($hasCompletionSignal -or $meetsPromise -or $allTasksComplete) -and -not $hasBlockingError
+
+    # Determine reason
+    $reason = if ($hasBlockingError) {
+        "blocking error detected"
+    } elseif ($hasCompletionSignal) {
+        "completion signal detected"
+    } elseif ($meetsPromise) {
+        "completion promise met"
+    } elseif ($allTasksComplete) {
+        "all tasks completed"
+    } else {
+        "criteria not met"
+    }
+
+    return @{
+        shouldComplete = $shouldComplete
+        reason = $reason
+        hasError = $hasBlockingError
+        hasCompletionSignal = $hasCompletionSignal
+        meetsPromise = $meetsPromise
+        allTasksComplete = $allTasksComplete
+    }
+}
+
 # Export functions (only if running as a module)
 if ($MyInvocation.MyCommand.CommandType -eq 'ExternalScript') {
     # Running as a script - functions are already available
 } else {
     # Running as a module
-    Export-ModuleMember -Function Initialize-RalphState, Update-RalphState, Get-RalphState, Clear-RalphState, Parse-TaskProgress
+    Export-ModuleMember -Function Initialize-RalphState, Update-RalphState, Get-RalphState, Clear-RalphState, Parse-TaskProgress, Test-CompletionCriteria
 }
