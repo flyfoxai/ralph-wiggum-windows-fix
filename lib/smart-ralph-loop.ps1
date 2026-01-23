@@ -237,10 +237,156 @@ function Test-CompletionCriteria {
     }
 }
 
+# Start Smart Ralph Loop
+function Start-SmartRalphLoop {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Prompt,
+
+        [Parameter(Mandatory=$false)]
+        [int]$MaxIterations = 10,
+
+        [Parameter(Mandatory=$false)]
+        [string]$CompletionPromise = ""
+    )
+
+    # Initialize state
+    Initialize-RalphState -Prompt $Prompt -MaxIterations $MaxIterations -CompletionPromise $CompletionPromise | Out-Null
+
+    Write-Host "🔄 Starting Smart Ralph Loop" -ForegroundColor Cyan
+    Write-Host "Prompt: $Prompt" -ForegroundColor White
+    Write-Host "Max Iterations: $MaxIterations" -ForegroundColor White
+    if ($CompletionPromise) {
+        Write-Host "Completion Promise: $CompletionPromise" -ForegroundColor White
+    }
+    Write-Host ""
+
+    $currentPrompt = $Prompt
+
+    for ($i = 1; $i -le $MaxIterations; $i++) {
+        Write-Host "--- Iteration $i/$MaxIterations ---" -ForegroundColor Yellow
+
+        # Update state
+        Update-RalphState -Updates @{ currentIteration = $i } | Out-Null
+
+        # Simulate Claude response (in real implementation, this calls Claude)
+        # For now, we'll use a mock response for testing
+        $response = Invoke-MockClaudeIteration -Prompt $currentPrompt -Iteration $i
+
+        Write-Host "Response received (${response.Length} chars)" -ForegroundColor Gray
+
+        # Parse task progress
+        $taskProgress = Parse-TaskProgress -Output $response
+
+        # Check completion
+        $completion = Test-CompletionCriteria -Output $response -CompletionPromise $CompletionPromise -TaskProgress $taskProgress
+
+        # Display progress
+        if ($taskProgress.hasTasks) {
+            Write-Host "Progress: $($taskProgress.completedTasks)/$($taskProgress.totalTasks) tasks ($($taskProgress.progress)%)" -ForegroundColor Cyan
+        }
+
+        # Check if should complete
+        if ($completion.shouldComplete) {
+            Write-Host "✅ Loop completed: $($completion.reason)" -ForegroundColor Green
+            Update-RalphState -Updates @{ status = "completed"; endTime = (Get-Date).ToString("o") } | Out-Null
+            return @{
+                status = "completed"
+                reason = $completion.reason
+                iterations = $i
+            }
+        }
+
+        # Check for blocking error
+        if ($completion.hasError) {
+            Write-Host "⚠️  Blocking error detected, stopping loop" -ForegroundColor Red
+            Update-RalphState -Updates @{ status = "error"; endTime = (Get-Date).ToString("o") } | Out-Null
+            return @{
+                status = "error"
+                reason = $completion.reason
+                iterations = $i
+            }
+        }
+
+        # Prepare next iteration prompt
+        if ($taskProgress.hasTasks) {
+            $currentPrompt = "Continue with the task. Previous progress: $($taskProgress.progress)%"
+        } else {
+            $currentPrompt = "Continue with: $Prompt"
+        }
+
+        Write-Host ""
+    }
+
+    Write-Host "⏱️  Max iterations reached" -ForegroundColor Yellow
+    Update-RalphState -Updates @{ status = "max_iterations"; endTime = (Get-Date).ToString("o") } | Out-Null
+
+    return @{
+        status = "max_iterations"
+        reason = "Maximum iterations reached"
+        iterations = $MaxIterations
+    }
+}
+
+# Mock Claude iteration (for testing)
+function Invoke-MockClaudeIteration {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Prompt,
+
+        [Parameter(Mandatory=$true)]
+        [int]$Iteration
+    )
+
+    # Simulate different responses based on iteration
+    switch ($Iteration) {
+        1 {
+            return @"
+Starting work on the task...
+
+Todos
+☐ Task 1: Setup
+☐ Task 2: Implementation
+☐ Task 3: Testing
+"@
+        }
+        2 {
+            return @"
+Making progress...
+
+Todos
+☒ Task 1: Setup
+● Task 2: Implementation
+☐ Task 3: Testing
+"@
+        }
+        3 {
+            return @"
+Almost done...
+
+Todos
+☒ Task 1: Setup
+☒ Task 2: Implementation
+● Task 3: Testing
+"@
+        }
+        default {
+            return @"
+Task completed successfully!
+
+Todos
+☒ Task 1: Setup
+☒ Task 2: Implementation
+☒ Task 3: Testing
+"@
+        }
+    }
+}
+
 # Export functions (only if running as a module)
 if ($MyInvocation.MyCommand.CommandType -eq 'ExternalScript') {
     # Running as a script - functions are already available
 } else {
     # Running as a module
-    Export-ModuleMember -Function Initialize-RalphState, Update-RalphState, Get-RalphState, Clear-RalphState, Parse-TaskProgress, Test-CompletionCriteria
+    Export-ModuleMember -Function Initialize-RalphState, Update-RalphState, Get-RalphState, Clear-RalphState, Parse-TaskProgress, Test-CompletionCriteria, Start-SmartRalphLoop
 }
