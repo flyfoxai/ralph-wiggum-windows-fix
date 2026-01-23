@@ -37,6 +37,50 @@ function Test-InterruptionRequested {
     return -not $script:IsRunning
 }
 
+# Show progress bar
+function Show-ProgressBar {
+    param(
+        [Parameter(Mandatory=$true)]
+        [int]$Percent
+    )
+
+    $barLength = 40
+    $filled = [math]::Floor($barLength * $Percent / 100)
+    $empty = $barLength - $filled
+
+    $bar = "[" + ("=" * $filled) + ("." * $empty) + "]"
+    Write-Host "$bar $Percent%" -ForegroundColor Cyan
+}
+
+# Write log message
+function Write-RalphLog {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Message,
+
+        [Parameter(Mandatory=$false)]
+        [ValidateSet("INFO", "WARN", "ERROR", "SUCCESS")]
+        [string]$Level = "INFO"
+    )
+
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $logMessage = "[$timestamp] [$Level] $Message"
+
+    $logFile = Join-Path $env:TEMP "smart-ralph-loop.log"
+    Add-Content -Path $logFile -Value $logMessage -Encoding UTF8
+
+    $color = switch ($Level) {
+        "ERROR" { "Red" }
+        "WARN" { "Yellow" }
+        "SUCCESS" { "Green" }
+        default { "Gray" }
+    }
+
+    if ($Level -ne "INFO") {
+        Write-Host $logMessage -ForegroundColor $color
+    }
+}
+
 # Initialize Ralph Loop state
 function Initialize-RalphState {
     param(
@@ -281,6 +325,9 @@ function Start-SmartRalphLoop {
     }
     Write-Host ""
 
+    Write-RalphLog "Starting Smart Ralph Loop: $Prompt" "INFO"
+    Write-RalphLog "Max iterations: $MaxIterations" "INFO"
+
     $currentPrompt = $Prompt
 
     for ($i = 1; $i -le $MaxIterations; $i++) {
@@ -315,11 +362,14 @@ function Start-SmartRalphLoop {
         # Display progress
         if ($taskProgress.hasTasks) {
             Write-Host "Progress: $($taskProgress.completedTasks)/$($taskProgress.totalTasks) tasks ($($taskProgress.progress)%)" -ForegroundColor Cyan
+            Show-ProgressBar -Percent ([int]$taskProgress.progress)
+            Write-RalphLog "Progress: $($taskProgress.progress)% ($($taskProgress.completedTasks)/$($taskProgress.totalTasks) tasks)" "INFO"
         }
 
         # Check if should complete
         if ($completion.shouldComplete) {
             Write-Host "✅ Loop completed: $($completion.reason)" -ForegroundColor Green
+            Write-RalphLog "Loop completed: $($completion.reason)" "SUCCESS"
             Update-RalphState -Updates @{ status = "completed"; endTime = (Get-Date).ToString("o") } | Out-Null
             return @{
                 status = "completed"
@@ -331,6 +381,7 @@ function Start-SmartRalphLoop {
         # Check for blocking error
         if ($completion.hasError) {
             Write-Host "⚠️  Blocking error detected, stopping loop" -ForegroundColor Red
+            Write-RalphLog "Blocking error detected: $($completion.reason)" "ERROR"
             Update-RalphState -Updates @{ status = "error"; endTime = (Get-Date).ToString("o") } | Out-Null
             return @{
                 status = "error"
@@ -350,6 +401,7 @@ function Start-SmartRalphLoop {
     }
 
     Write-Host "⏱️  Max iterations reached" -ForegroundColor Yellow
+    Write-RalphLog "Max iterations reached" "WARN"
     Update-RalphState -Updates @{ status = "max_iterations"; endTime = (Get-Date).ToString("o") } | Out-Null
 
     return @{
@@ -419,5 +471,5 @@ if ($MyInvocation.MyCommand.CommandType -eq 'ExternalScript') {
     # Running as a script - functions are already available
 } else {
     # Running as a module
-    Export-ModuleMember -Function Initialize-RalphState, Update-RalphState, Get-RalphState, Clear-RalphState, Parse-TaskProgress, Test-CompletionCriteria, Start-SmartRalphLoop, Test-InterruptionRequested
+    Export-ModuleMember -Function Initialize-RalphState, Update-RalphState, Get-RalphState, Clear-RalphState, Parse-TaskProgress, Test-CompletionCriteria, Start-SmartRalphLoop, Test-InterruptionRequested, Show-ProgressBar, Write-RalphLog
 }
