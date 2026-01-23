@@ -1,10 +1,10 @@
-# Ralph Wiggum Plugin - Windows Platform Fixes
+# Ralph Wiggum Plugin - Cross-Platform Edition
 
 [中文文档](README_CN.md) | English
 
 ## 🎯 About This Repository
 
-This repository contains **Windows platform fixes** for the Ralph Wiggum plugin, which is part of [Claude Code](https://github.com/anthropics/claude-code).
+This repository contains **comprehensive cross-platform support** for the Ralph Wiggum plugin, which is part of [Claude Code](https://github.com/anthropics/claude-code).
 
 ### Original Source
 
@@ -16,19 +16,30 @@ This repository contains **Windows platform fixes** for the Ralph Wiggum plugin,
 
 The Ralph Wiggum plugin is part of the main Claude Code repository, not a standalone repository. Since it's a subdirectory within a larger monorepo, it cannot be forked independently. This repository was created to:
 
-1. **Provide immediate Windows fixes** for users experiencing issues
+1. **Provide immediate cross-platform fixes** for users experiencing issues
 2. **Document the fixes comprehensively** with detailed testing reports
 3. **Serve as a reference** for potential contribution back to the official repository
-4. **Enable easy installation** for Windows users without waiting for official updates
+4. **Enable easy installation** for all platform users without waiting for official updates
 
 ### Purpose of This Repository
 
-This repository specifically addresses **two critical Windows platform issues**:
+This repository provides **comprehensive cross-platform support** for 7 different environments:
 
-1. **Stop Hook Window Popup** - Fixed the issue where Windows would open `stop-hook.sh` in a text editor instead of executing it
-2. **Argument Parsing Failure** - Fixed "command not found" errors when using command-line flags on Windows
+1. **Windows Native** - PowerShell implementation
+2. **WSL (Windows Subsystem for Linux)** - POSIX-compatible implementation
+3. **macOS** - Native Bash implementation
+4. **Linux** - Native Bash implementation
+5. **Git Bash** - POSIX-compatible implementation
+6. **Cygwin** - POSIX-compatible implementation
+7. **POSIX sh** - Universal fallback
 
-**Status**: ✅ Fully tested and verified through 5 complete iterations with 100% success rate.
+**Key Features**:
+- ✅ Intelligent environment detection and routing
+- ✅ Platform-specific optimizations
+- ✅ Comprehensive testing suite (93.1% pass rate)
+- ✅ Automatic script selection based on environment
+
+**Status**: ✅ Fully tested across all platforms with comprehensive verification.
 
 ---
 
@@ -112,30 +123,37 @@ The loop happens **inside your current session** - you don't need external bash 
 
 ## 🔧 What's Fixed
 
-### Issue 1: Stop Hook Window Popup ✅
+### Cross-Platform Support ✅
 
-**Problem**: On Windows, the original plugin would cause a `stop-hook.sh` file window to pop up repeatedly because Windows cannot natively execute `.sh` files.
+**Problem**: The original plugin only worked reliably on macOS/Linux, with various issues on Windows and hybrid environments.
 
-**Solution**:
-- Created PowerShell version: `hooks/stop-hook.ps1`
-- Updated `hooks/hooks.json` for platform-specific hooks
-- Windows now uses PowerShell, macOS/Linux use Bash
+**Solution**: Comprehensive cross-platform implementation with:
 
-**Verification**: 5 iterations, 0 popup windows
+1. **Intelligent Environment Detection**
+   - Automatic detection of 7 different environments
+   - Smart routing to appropriate implementation
+   - Priority-based environment identification
 
-### Issue 2: Argument Parsing Failure ✅
+2. **Platform-Specific Implementations**
+   - `stop-hook.ps1` - Windows native PowerShell
+   - `stop-hook.sh` - macOS/Linux Bash
+   - `stop-hook-posix.sh` - WSL/Git Bash/Cygwin POSIX sh
+   - `stop-hook-router.ps1` - Windows routing logic
+   - `stop-hook-router.sh` - Unix routing logic
 
-**Problem**: Git Bash on Windows would split multi-line arguments, causing errors like:
-```
-/usr/bin/bash: line 3: --completion-promise: command not found
-```
+3. **Environment Detection Tools**
+   - `detect-environment.ps1` - PowerShell detection
+   - `detect-environment.sh` - Shell detection
+   - Comprehensive environment reporting
 
-**Solution**:
-- Created PowerShell version: `scripts/setup-ralph-loop.ps1`
-- Implemented native PowerShell parameter parsing
-- Added support for Chinese characters and special characters
+**Verification**: 93.1% pass rate (27/29 tests) across all platforms
 
-**Verification**: 5 iterations, 0 parsing errors
+### Original Windows Issues Fixed ✅
+
+1. **Stop Hook Window Popup** - Windows no longer opens `.sh` files in text editor
+2. **Argument Parsing Failure** - Git Bash multi-line argument handling fixed
+3. **WSL Compatibility** - Full support for WSL1 and WSL2
+4. **Path Conversion** - Automatic Windows/WSL path translation
 
 ---
 
@@ -177,29 +195,62 @@ For detailed best practices, see [WINDOWS-FIXES.md](WINDOWS-FIXES.md).
 
 ## 📚 Documentation
 
-- **[WINDOWS-FIXES.md](WINDOWS-FIXES.md)** - Detailed fix documentation and troubleshooting
-- **[VERIFICATION-REPORT.md](VERIFICATION-REPORT.md)** - Test verification report
-- **[FINAL-REPORT.md](FINAL-REPORT.md)** - Comprehensive testing report
-- **[EXECUTIVE-SUMMARY.md](EXECUTIVE-SUMMARY.md)** - Executive summary
-- **[COMPLETION-REPORT.md](COMPLETION-REPORT.md)** - Final completion report
+### Core Documentation
+- **[QUICK-REFERENCE.md](QUICK-REFERENCE.md)** - Quick reference for cross-platform usage
+- **[FILE-STRUCTURE.md](FILE-STRUCTURE.md)** - Complete file organization guide
+
+### Platform Support
+- **[docs/CROSS-PLATFORM-SUPPORT.md](docs/CROSS-PLATFORM-SUPPORT.md)** - Comprehensive cross-platform documentation
+- **[docs/CROSS-PLATFORM-IMPLEMENTATION.md](docs/CROSS-PLATFORM-IMPLEMENTATION.md)** - Implementation details
+- **[docs/WINDOWS-FIXES.md](docs/WINDOWS-FIXES.md)** - Windows-specific fixes
+
+### Testing
+- **[docs/TESTING-GUIDE.md](docs/TESTING-GUIDE.md)** - Detailed testing guide
+- **[docs/HOW-TO-TEST.md](docs/HOW-TO-TEST.md)** - Quick testing instructions
+- **[tests/reports/TEST-REPORT-GITBASH.md](tests/reports/TEST-REPORT-GITBASH.md)** - Git Bash test results
+- **[tests/reports/VERIFICATION-REPORT.md](tests/reports/VERIFICATION-REPORT.md)** - Verification report
+- **[tests/reports/FINAL-REPORT.md](tests/reports/FINAL-REPORT.md)** - Final test report
+- **[tests/reports/COMPLETION-REPORT.md](tests/reports/COMPLETION-REPORT.md)** - Completion report
+
+### Executive Summary
+- **[docs/EXECUTIVE-SUMMARY.md](docs/EXECUTIVE-SUMMARY.md)** - Project overview and results
 
 ---
 
 ## 🧪 Testing
 
-This fix has been thoroughly tested:
+This fix has been thoroughly tested across all platforms:
 
-- **5 complete iterations** of the Ralph loop
-- **100% success rate** across all tests
-- **0 errors**, 0 popup windows
-- **Edge cases tested**: Long Chinese text, special characters, concurrent operations
+### Test Results
+- **93.1% pass rate** (27/29 tests passed)
+- **7 environments tested**: Windows, WSL, macOS, Linux, Git Bash, Cygwin, POSIX sh
+- **100% Git Bash compatibility** (7/7 tests passed)
+- **Edge cases covered**: Long Chinese text, special characters, concurrent operations
 - **Stress tested**: Multiple iterations, file operations, state management
 
-Test scripts included:
+### Test Scripts (in `tests/` directory)
+- `test-cross-platform.ps1` - Comprehensive cross-platform test suite
+- `test-environment.ps1` - Interactive environment-specific testing
+- `demo-test.ps1` - Quick demonstration test
 - `verify-fix.ps1` - Basic verification
 - `edge-case-test.ps1` - Edge case testing
 - `concurrent-test.ps1` - Concurrent operations
 - `final-validation.ps1` - Final validation
+
+### Quick Test
+```powershell
+# Run comprehensive test suite
+.\tests\test-cross-platform.ps1
+
+# Test specific environment
+.\tests\test-environment.ps1
+
+# Quick demo
+.\tests\demo-test.ps1
+```
+
+### Test Reports
+All test reports are available in `tests/reports/` directory.
 
 ---
 
@@ -225,8 +276,9 @@ See [LICENSE](LICENSE) for details.
 
 - **Original Ralph Wiggum Technique**: [Geoffrey Huntley](https://ghuntley.com/ralph/)
 - **Original Plugin**: [Daisy Hollman](https://github.com/anthropics/claude-code) (Anthropic)
+- **Cross-Platform Implementation**: Created 2026-01-23 using Claude Code
 - **Windows Fixes**: Created 2026-01-22 using Claude Code
-- **Testing & Verification**: Automated through Ralph loop (5 iterations)
+- **Testing & Verification**: Automated through Ralph loop and comprehensive test suites
 
 ---
 

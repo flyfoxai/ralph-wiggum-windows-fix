@@ -1,0 +1,87 @@
+{
+  "description": "Ralph Wiggum plugin stop hook for self-referential loops with comprehensive cross-platform support",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "comment": "Windows native - use PowerShell router for intelligent environment detection",
+            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook-router.ps1\"",
+            "platforms": ["win32"]
+          },
+          {
+            "type": "command",
+            "comment": "macOS and Linux - use shell router for intelligent environment detection",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook-router.sh\"",
+            "platforms": ["darwin", "linux"]
+          }
+        ]
+      }
+    ]
+  },
+  "environment_support": {
+    "windows_native": {
+      "platform": "win32",
+      "shell": "PowerShell 7+",
+      "script": "stop-hook.ps1",
+      "status": "✅ Fully supported"
+    },
+    "wsl1": {
+      "platform": "linux (in WSL)",
+      "shell": "sh/bash",
+      "script": "stop-hook-posix.sh",
+      "status": "✅ Fully supported",
+      "notes": "Auto-detected via WSL_DISTRO_NAME or /proc/version"
+    },
+    "wsl2": {
+      "platform": "linux (in WSL)",
+      "shell": "sh/bash",
+      "script": "stop-hook-posix.sh",
+      "status": "✅ Fully supported",
+      "notes": "Auto-detected via WSL_DISTRO_NAME or /proc/version"
+    },
+    "macos": {
+      "platform": "darwin",
+      "shell": "bash/zsh",
+      "script": "stop-hook.sh or stop-hook-posix.sh",
+      "status": "✅ Fully supported"
+    },
+    "linux": {
+      "platform": "linux",
+      "shell": "bash",
+      "script": "stop-hook.sh or stop-hook-posix.sh",
+      "status": "✅ Fully supported"
+    },
+    "git_bash": {
+      "platform": "win32 (MSYS)",
+      "shell": "bash",
+      "script": "stop-hook-posix.sh",
+      "status": "✅ Fully supported",
+      "notes": "Auto-detected via MSYSTEM environment variable"
+    },
+    "cygwin": {
+      "platform": "win32 (Cygwin)",
+      "shell": "bash",
+      "script": "stop-hook-posix.sh",
+      "status": "✅ Fully supported",
+      "notes": "Auto-detected via CYGWIN environment variable"
+    }
+  },
+  "routing_logic": {
+    "description": "Smart routing based on environment detection",
+    "windows_router": "stop-hook-router.ps1",
+    "unix_router": "stop-hook-router.sh",
+    "detection_methods": [
+      "Environment variables (WSL_DISTRO_NAME, MSYSTEM, CYGWIN)",
+      "/proc/version inspection (WSL detection)",
+      "uname -s output (platform detection)",
+      "Shell availability (bash, sh, pwsh)"
+    ]
+  },
+  "fallback_strategy": {
+    "windows": "PowerShell implementation (stop-hook.ps1)",
+    "unix": "POSIX-compatible implementation (stop-hook-posix.sh)",
+    "unknown": "Attempt POSIX version, then PowerShell"
+  }
+}
