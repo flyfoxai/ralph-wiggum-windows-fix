@@ -119,6 +119,36 @@ This plugin implements Ralph using a **Stop hook** that intercepts Claude's exit
 
 The loop happens **inside your current session** - you don't need external bash loops. The Stop hook creates the self-referential feedback loop by blocking normal session exit.
 
+### Smart Ralph Loop ✨ NEW
+
+The **Smart Ralph Loop** is an enhanced version with intelligent completion detection:
+
+```bash
+/ralph-smart "Your task description" --max-iterations 15
+```
+
+**Key Features**:
+- 🤖 **Autonomous Iteration**: Automatically continues until task completion
+- 🎯 **Intelligent Completion Detection**: Multiple criteria for detecting when work is done
+- 📊 **Progress Tracking**: Monitors todo lists and calculates completion percentage
+- ⏸️ **Graceful Interruption**: Ctrl+C saves state and stops cleanly
+- 💾 **State Persistence**: Maintains state across interruptions
+- ⚙️ **Flexible Configuration**: Customize iterations and completion criteria
+
+**The loop automatically stops when**:
+- Task completion is detected (e.g., "task completed", "all done")
+- All todos are marked complete (100% progress)
+- Completion promise text is found
+- Max iterations reached
+- User interrupts (Ctrl+C)
+
+**Example**:
+```bash
+/ralph-smart "Implement dark mode" --max-iterations 20 --completion-promise "All tests passing"
+```
+
+See [Smart Ralph Loop Documentation](docs/smart-ralph-loop.md) for details.
+
 ---
 
 ## 🔧 What's Fixed
