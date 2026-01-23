@@ -7,6 +7,22 @@ $ErrorActionPreference = "Stop"
 # Read hook input from stdin (advanced stop hook API)
 $hookInput = [Console]::In.ReadToEnd()
 
+# Check for Smart Ralph Loop state file
+$smartRalphStateFile = Join-Path $env:TEMP "smart-ralph-state.json"
+if (Test-Path $smartRalphStateFile) {
+    try {
+        $smartState = Get-Content $smartRalphStateFile -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ($smartState.status -eq "running") {
+            Write-Host "⏸️  Smart Ralph Loop detected - marking as interrupted"
+            $smartState.status = "interrupted"
+            $smartState.endTime = (Get-Date).ToString("o")
+            $smartState | ConvertTo-Json -Depth 10 | Set-Content $smartRalphStateFile -Encoding UTF8
+        }
+    } catch {
+        # Ignore errors in Smart Ralph state handling
+    }
+}
+
 # Check if ralph-loop is active
 $ralphStateFile = ".claude/ralph-loop.local.md"
 

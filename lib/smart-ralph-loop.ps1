@@ -16,6 +16,26 @@ $ErrorActionPreference = "Stop"
 
 # State file location
 $script:StateFile = Join-Path $env:TEMP "smart-ralph-state.json"
+$script:IsRunning = $true
+
+# Interruption handler
+$script:InterruptHandler = {
+    Write-Host "`n⏸️  Interruption detected, saving state..." -ForegroundColor Yellow
+    $script:IsRunning = $false
+}
+
+# Register Ctrl+C handler
+try {
+    [Console]::TreatControlCAsInput = $false
+    $null = Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action $script:InterruptHandler -ErrorAction SilentlyContinue
+} catch {
+    # Silently ignore if already registered
+}
+
+# Test if interruption was requested
+function Test-InterruptionRequested {
+    return -not $script:IsRunning
+}
 
 # Initialize Ralph Loop state
 function Initialize-RalphState {
@@ -264,6 +284,17 @@ function Start-SmartRalphLoop {
     $currentPrompt = $Prompt
 
     for ($i = 1; $i -le $MaxIterations; $i++) {
+        # Check for interruption
+        if (Test-InterruptionRequested) {
+            Write-Host "⏸️  Loop interrupted by user" -ForegroundColor Yellow
+            Update-RalphState -Updates @{ status = "interrupted"; endTime = (Get-Date).ToString("o") } | Out-Null
+            return @{
+                status = "interrupted"
+                reason = "User interrupted"
+                iterations = $i - 1
+            }
+        }
+
         Write-Host "--- Iteration $i/$MaxIterations ---" -ForegroundColor Yellow
 
         # Update state
@@ -388,5 +419,5 @@ if ($MyInvocation.MyCommand.CommandType -eq 'ExternalScript') {
     # Running as a script - functions are already available
 } else {
     # Running as a module
-    Export-ModuleMember -Function Initialize-RalphState, Update-RalphState, Get-RalphState, Clear-RalphState, Parse-TaskProgress, Test-CompletionCriteria, Start-SmartRalphLoop
+    Export-ModuleMember -Function Initialize-RalphState, Update-RalphState, Get-RalphState, Clear-RalphState, Parse-TaskProgress, Test-CompletionCriteria, Start-SmartRalphLoop, Test-InterruptionRequested
 }
