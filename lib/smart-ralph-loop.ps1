@@ -86,10 +86,77 @@ function Clear-RalphState {
     }
 }
 
+# Parse task progress from Claude output
+function Parse-TaskProgress {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Output
+    )
+
+    # Parse todo list from output
+    # Supports formats:
+    # - ☒ Task (completed)
+    # - ☐ Task (pending)
+    # - ● Task (in progress)
+
+    $tasks = @()
+
+    # Pattern to match todo items
+    $todoPattern = '(?m)^[\s-]*[☒☐●✓✗×]\s+(.+?)$'
+    $matches = [regex]::Matches($Output, $todoPattern)
+
+    if ($matches.Count -eq 0) {
+        return @{
+            hasTasks = $false
+            totalTasks = 0
+            completedTasks = 0
+            progress = 0
+            tasks = @()
+        }
+    }
+
+    foreach ($match in $matches) {
+        $line = $match.Value.Trim()
+        $taskText = $match.Groups[1].Value.Trim()
+
+        # Check status based on symbol
+        $isCompleted = $line -match '^[\s-]*[☒✓×]'
+        $isInProgress = $line -match '^[\s-]*●'
+        $isPending = $line -match '^[\s-]*[☐✗]'
+
+        $status = if ($isCompleted) { "completed" }
+                  elseif ($isInProgress) { "in_progress" }
+                  else { "pending" }
+
+        $tasks += @{
+            text = $taskText
+            status = $status
+        }
+    }
+
+    $completedCount = @($tasks | Where-Object { $_.status -eq "completed" }).Count
+    $totalCount = $tasks.Count
+    $progress = if ($totalCount -gt 0) {
+        [math]::Round(($completedCount / $totalCount) * 100, 2)
+    } else {
+        0
+    }
+
+    $result = @{
+        hasTasks = $true
+        totalTasks = $totalCount
+        completedTasks = $completedCount
+        progress = $progress
+        tasks = $tasks
+    }
+
+    return $result
+}
+
 # Export functions (only if running as a module)
 if ($MyInvocation.MyCommand.CommandType -eq 'ExternalScript') {
     # Running as a script - functions are already available
 } else {
     # Running as a module
-    Export-ModuleMember -Function Initialize-RalphState, Update-RalphState, Get-RalphState, Clear-RalphState
+    Export-ModuleMember -Function Initialize-RalphState, Update-RalphState, Get-RalphState, Clear-RalphState, Parse-TaskProgress
 }
