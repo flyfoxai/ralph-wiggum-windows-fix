@@ -49,11 +49,29 @@ Ralph Wiggum 插件是 Claude Code 主仓库的一部分，而不是独立的仓
 
 - 已安装 **Claude Code**
 - **PowerShell 7.x** (pwsh) - [点击下载](https://github.com/PowerShell/PowerShell/releases)
-- **Windows 10/11**
+- **Windows 10/11** 或其他支持的平台
 
 ### 安装步骤
 
-#### 方式一：手动安装（推荐）
+#### 方式一：通过 Marketplace 安装（推荐）
+
+这是符合 Claude Code 官方标准的安装方式：
+
+1. **添加 Marketplace**：
+   ```bash
+   /plugin marketplace add https://github.com/flyfoxai/ralph-wiggum-windows-fix
+   ```
+
+2. **安装插件**：
+   ```bash
+   /plugin install ralph-wiggum
+   ```
+
+3. **重启 Claude Code** 以加载插件
+
+#### 方式二：手动安装
+
+如果 Marketplace 方式不可用，可以手动安装：
 
 1. **找到 Claude Code 插件目录**：
    ```
@@ -62,7 +80,7 @@ Ralph Wiggum 插件是 Claude Code 主仓库的一部分，而不是独立的仓
 
 2. **备份原始插件**（可选但推荐）：
    ```powershell
-   cd C:\Users\<你的用户名>\.claude\plugins\marketplaces\claude-code-plugins\plugins\
+   cd C:\Users\<你的用��名>\.claude\plugins\marketplaces\claude-code-plugins\plugins\
    Rename-Item ralph-wiggum ralph-wiggum.backup
    ```
 
@@ -74,7 +92,7 @@ Ralph Wiggum 插件是 Claude Code 主仓库的一部分，而不是独立的仓
 
 4. **重启 Claude Code** 以重新加载插件
 
-#### 方式二：下载并替换
+#### 方式三：下载并替换
 
 1. 从 [Releases](https://github.com/flyfoxai/ralph-wiggum-windows-fix/releases) 下载最新版本
 2. 解压文件
