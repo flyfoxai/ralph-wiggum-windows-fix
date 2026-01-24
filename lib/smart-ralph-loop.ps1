@@ -466,10 +466,4 @@ Todos
     }
 }
 
-# Export functions (only if running as a module)
-if ($MyInvocation.MyCommand.CommandType -eq 'ExternalScript') {
-    # Running as a script - functions are already available
-} else {
-    # Running as a module
-    Export-ModuleMember -Function Initialize-RalphState, Update-RalphState, Get-RalphState, Clear-RalphState, Parse-TaskProgress, Test-CompletionCriteria, Start-SmartRalphLoop, Test-InterruptionRequested, Show-ProgressBar, Write-RalphLog
-}
+# Functions are automatically available when script is imported
