@@ -13,7 +13,7 @@ Write-Host "══════════════════════�
 Write-Host ""
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$HooksDir = Join-Path $ScriptDir "hooks"
+$HooksDir = Join-Path $ScriptDir "..\hooks"
 
 $TestResults = @{
     Passed = 0
