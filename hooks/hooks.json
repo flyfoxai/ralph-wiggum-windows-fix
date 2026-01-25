@@ -3,16 +3,20 @@
   "hooks": {
     "Stop": [
       {
-        "type": "command",
-        "comment": "Windows - use router for intelligent environment detection (Git Bash, WSL, Cygwin)",
-        "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook-router.ps1\"",
-        "platforms": ["win32"]
-      },
-      {
-        "type": "command",
-        "comment": "macOS and Linux - use shell router for intelligent environment detection",
-        "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook-router.sh\"",
-        "platforms": ["darwin", "linux"]
+        "hooks": [
+          {
+            "type": "command",
+            "comment": "Windows - use router for intelligent environment detection (Git Bash, WSL, Cygwin)",
+            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook-router.ps1\"",
+            "platforms": ["win32"]
+          },
+          {
+            "type": "command",
+            "comment": "macOS and Linux - use shell router for intelligent environment detection",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook-router.sh\"",
+            "platforms": ["darwin", "linux"]
+          }
+        ]
       }
     ]
   }
