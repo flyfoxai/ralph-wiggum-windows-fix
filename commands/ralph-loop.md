@@ -1,6 +1,6 @@
 ---
 description: "Start Ralph Wiggum loop in current session"
-argument-hint: "PROMPT [--max-iterations N] [--completion-promise TEXT]"
+argument-hint: "PROMPT|FILE [--max-iterations N] [--completion-promise TEXT]"
 allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralph-loop.sh:*)", "Bash(pwsh:*)"]
 hide-from-slash-command-tool: "true"
 ---
@@ -15,6 +15,27 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File "${CLAUDE_PLUGIN_ROOT}/scripts/set
 
 ```!darwin,linux
 "${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralph-loop.sh" ${ARGS}
+```
+
+**Usage:**
+```
+/ralph-loop "Your task description"
+/ralph-loop path/to/prompt.txt
+/ralph-loop "Your task" --max-iterations 20
+/ralph-loop prompt.md --completion-promise "DONE"
+```
+
+**Arguments:**
+- `PROMPT` - Task description as a string
+- `FILE` - Path to a text file containing the task description
+
+**Options:**
+- `--max-iterations <n>` - Maximum iterations (optional, uses default if not specified)
+- `--completion-promise <text>` - Phrase that signals completion
+
+**Setting Default Max Iterations:**
+```
+/ralph-smart-setmaxiterations 20
 ```
 
 Please work on the task. When you try to exit, the Ralph loop will feed the SAME PROMPT back to you for the next iteration. You'll see your previous work in files and git history, allowing you to iterate and improve.

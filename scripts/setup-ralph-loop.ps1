@@ -6,6 +6,12 @@ param(
     [string[]]$Arguments
 )
 
+# Import configuration module
+$configModule = Join-Path $PSScriptRoot ".." "lib" "ralph-config.ps1"
+if (Test-Path $configModule) {
+    Import-Module $configModule -Force
+}
+
 # Join all arguments into a single string
 $allArgs = $Arguments -join ' '
 
@@ -13,8 +19,25 @@ $allArgs = $Arguments -join ' '
 $promptParts = @()
 $maxIterations = 0
 $completionPromise = "null"
+$promptFromFile = $false
 
-$i = 0
+# Check if first argument is a file path
+if ($Arguments.Count -gt 0 -and (Test-IsFilePath -Argument $Arguments[0])) {
+    Write-Host "📄 Reading prompt from file: $($Arguments[0])" -ForegroundColor Cyan
+    try {
+        $prompt = Read-PromptFromFile -FilePath $Arguments[0]
+        $promptFromFile = $true
+        Write-Host "✅ Loaded prompt ($($prompt.Length) characters)" -ForegroundColor Green
+        Write-Host ""
+        # Skip first argument since it's the file
+        $i = 1
+    } catch {
+        Write-Error "Failed to read prompt file: $_"
+        exit 1
+    }
+} else {
+    $i = 0
+}
 while ($i -lt $Arguments.Count) {
     $arg = $Arguments[$i]
 
@@ -81,12 +104,28 @@ STOPPING:
     }
 }
 
-# Join prompt parts
-$prompt = $promptParts -join ' '
+# Join prompt parts (if not from file)
+if (-not $promptFromFile) {
+    $prompt = $promptParts -join ' '
+}
 
 if ([string]::IsNullOrWhiteSpace($prompt)) {
     Write-Error "Error: No prompt provided"
     exit 1
+}
+
+# Get default max iterations if not specified
+if ($maxIterations -le 0) {
+    try {
+        $maxIterations = Get-DefaultMaxIterations
+        Write-Host "ℹ️  Using default max iterations: $maxIterations" -ForegroundColor Gray
+        Write-Host "   (Set with /ralph-smart-setmaxiterations <n>)" -ForegroundColor Gray
+        Write-Host ""
+    } catch {
+        # Fallback to 15 if config fails
+        $maxIterations = 15
+        Write-Warning "Failed to read config, using fallback: $maxIterations iterations"
+    }
 }
 
 # Create .claude directory if it doesn't exist

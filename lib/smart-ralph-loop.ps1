@@ -6,13 +6,19 @@ param(
     [string]$Prompt,
 
     [Parameter(Mandatory=$false)]
-    [int]$MaxIterations = 10,
+    [int]$MaxIterations = 0,
 
     [Parameter(Mandatory=$false)]
     [string]$CompletionPromise = ""
 )
 
 $ErrorActionPreference = "Stop"
+
+# Import configuration module
+$configModule = Join-Path $PSScriptRoot "ralph-config.ps1"
+if (Test-Path $configModule) {
+    Import-Module $configModule -Force
+}
 
 # State file location
 $script:StateFile = Join-Path $env:TEMP "smart-ralph-state.json"
@@ -304,15 +310,56 @@ function Test-CompletionCriteria {
 # Start Smart Ralph Loop
 function Start-SmartRalphLoop {
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$false)]
         [string]$Prompt,
 
         [Parameter(Mandatory=$false)]
-        [int]$MaxIterations = 10,
+        [int]$MaxIterations = 0,
 
         [Parameter(Mandatory=$false)]
         [string]$CompletionPromise = ""
     )
+
+    # Check if Prompt is a file path
+    if ($Prompt -and (Test-IsFilePath -Argument $Prompt)) {
+        Write-Host "📄 Reading prompt from file: $Prompt" -ForegroundColor Cyan
+        try {
+            $Prompt = Read-PromptFromFile -FilePath $Prompt
+            Write-Host "✅ Loaded prompt ($($Prompt.Length) characters)" -ForegroundColor Green
+            Write-Host ""
+        } catch {
+            Write-Error "Failed to read prompt file: $_"
+            return @{
+                status = "error"
+                reason = "Failed to read prompt file: $_"
+                iterations = 0
+            }
+        }
+    }
+
+    # Validate prompt
+    if ([string]::IsNullOrWhiteSpace($Prompt)) {
+        Write-Error "Prompt is required. Provide a prompt string or file path."
+        return @{
+            status = "error"
+            reason = "No prompt provided"
+            iterations = 0
+        }
+    }
+
+    # Get default max iterations if not specified
+    if ($MaxIterations -le 0) {
+        try {
+            $MaxIterations = Get-DefaultMaxIterations
+            Write-Host "ℹ️  Using default max iterations: $MaxIterations" -ForegroundColor Gray
+            Write-Host "   (Set with /ralph-smart-setmaxiterations <n>)" -ForegroundColor Gray
+            Write-Host ""
+        } catch {
+            # Fallback to 15 if config fails
+            $MaxIterations = 15
+            Write-Warning "Failed to read config, using fallback: $MaxIterations iterations"
+        }
+    }
 
     # Initialize state
     Initialize-RalphState -Prompt $Prompt -MaxIterations $MaxIterations -CompletionPromise $CompletionPromise | Out-Null
