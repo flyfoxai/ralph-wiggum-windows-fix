@@ -32,51 +32,71 @@ if ($stopHooks -is [Array]) {
 }
 Write-Host ""
 
-# 3. Check for nested hooks (the bug)
+# 3. Check for nested hooks (required by schema)
 Write-Host "3. Nested Hooks Check" -ForegroundColor Yellow
 $hasNestedHooks = $false
 foreach ($hook in $stopHooks) {
     if ($hook.PSObject.Properties.Name -contains "hooks") {
-        Write-Host "   ✗ Found nested 'hooks' property (BUG!)" -ForegroundColor Red
+        Write-Host "   ✓ Found nested 'hooks' property (CORRECT!)" -ForegroundColor Green
         $hasNestedHooks = $true
+        # Verify it's an array
+        if ($hook.hooks -is [Array]) {
+            Write-Host "     ✓ Nested hooks is an array with $($hook.hooks.Count) hook(s)" -ForegroundColor Green
+        } else {
+            Write-Host "     ✗ Nested hooks is not an array" -ForegroundColor Red
+            exit 1
+        }
     }
 }
 
-if (-not $hasNestedHooks) {
-    Write-Host "   ✓ No nested hooks found (FIXED!)" -ForegroundColor Green
+if ($hasNestedHooks) {
+    Write-Host "   ✓ Schema-compliant nested structure found" -ForegroundColor Green
 } else {
-    Write-Host "   This nested structure causes hooks to run multiple times" -ForegroundColor Yellow
+    Write-Host "   ✗ Missing required nested 'hooks' property" -ForegroundColor Red
+    Write-Host "   The schema requires: Stop[{hooks: [{type, command, ...}]}]" -ForegroundColor Yellow
     exit 1
 }
 Write-Host ""
 
-# 4. Validate hook properties
+# 4. Validate hook properties (inside nested hooks array)
 Write-Host "4. Hook Properties Validation" -ForegroundColor Yellow
 $allValid = $true
 for ($i = 0; $i -lt $stopHooks.Count; $i++) {
-    $hook = $stopHooks[$i]
-    Write-Host "   Hook $($i + 1):" -ForegroundColor Gray
+    $hookContainer = $stopHooks[$i]
+    Write-Host "   Hook Container $($i + 1):" -ForegroundColor Gray
 
-    # Check required properties
-    if ($hook.type) {
-        Write-Host "     ✓ type: $($hook.type)" -ForegroundColor Green
-    } else {
-        Write-Host "     ✗ Missing 'type' property" -ForegroundColor Red
+    if (-not ($hookContainer.PSObject.Properties.Name -contains "hooks")) {
+        Write-Host "     ✗ Missing 'hooks' property" -ForegroundColor Red
         $allValid = $false
+        continue
     }
 
-    if ($hook.command) {
-        Write-Host "     ✓ command: $($hook.command.Substring(0, [Math]::Min(50, $hook.command.Length)))..." -ForegroundColor Green
-    } else {
-        Write-Host "     ✗ Missing 'command' property" -ForegroundColor Red
-        $allValid = $false
-    }
+    $nestedHooks = $hookContainer.hooks
+    for ($j = 0; $j -lt $nestedHooks.Count; $j++) {
+        $hook = $nestedHooks[$j]
+        Write-Host "     Hook $($j + 1):" -ForegroundColor Gray
 
-    if ($hook.platforms) {
-        Write-Host "     ✓ platforms: $($hook.platforms -join ', ')" -ForegroundColor Green
-    } else {
-        Write-Host "     ✗ Missing 'platforms' property" -ForegroundColor Red
-        $allValid = $false
+        # Check required properties
+        if ($hook.type) {
+            Write-Host "       ✓ type: $($hook.type)" -ForegroundColor Green
+        } else {
+            Write-Host "       ✗ Missing 'type' property" -ForegroundColor Red
+            $allValid = $false
+        }
+
+        if ($hook.command) {
+            $cmdPreview = $hook.command.Substring(0, [Math]::Min(50, $hook.command.Length))
+            Write-Host "       ✓ command: $cmdPreview..." -ForegroundColor Green
+        } else {
+            Write-Host "       ✗ Missing 'command' property" -ForegroundColor Red
+            $allValid = $false
+        }
+
+        if ($hook.platforms) {
+            Write-Host "       ✓ platforms: $($hook.platforms -join ', ')" -ForegroundColor Green
+        } else {
+            Write-Host "       ⚠ No platforms specified (will run on all platforms)" -ForegroundColor Yellow
+        }
     }
 }
 
@@ -90,8 +110,14 @@ Write-Host ""
 # 5. Platform coverage check
 Write-Host "5. Platform Coverage Check" -ForegroundColor Yellow
 $platforms = @()
-foreach ($hook in $stopHooks) {
-    $platforms += $hook.platforms
+foreach ($hookContainer in $stopHooks) {
+    if ($hookContainer.hooks) {
+        foreach ($hook in $hookContainer.hooks) {
+            if ($hook.platforms) {
+                $platforms += $hook.platforms
+            }
+        }
+    }
 }
 $uniquePlatforms = $platforms | Select-Object -Unique
 
@@ -103,13 +129,15 @@ foreach ($platform in $expectedPlatforms) {
     if ($uniquePlatforms -contains $platform) {
         Write-Host "   ✓ $platform covered" -ForegroundColor Green
     } else {
-        Write-Host "   ✗ $platform NOT covered" -ForegroundColor Red
+        Write-Host "   ⚠ $platform NOT covered" -ForegroundColor Yellow
         $allCovered = $false
     }
 }
 
 if ($allCovered) {
     Write-Host "   ✓ All major platforms covered" -ForegroundColor Green
+} else {
+    Write-Host "   ⚠ Some platforms not explicitly covered (may use fallback)" -ForegroundColor Yellow
 }
 Write-Host ""
 
