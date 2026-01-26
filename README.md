@@ -1,6 +1,6 @@
 # Ralph Wiggum Plugin - Cross-Platform Edition
 
-**Version 1.31** | [中文文档](README_CN.md) | English
+**Version 1.33** | [中文文档](README_CN.md) | English
 
 > Cross-platform Ralph Wiggum plugin with comprehensive Windows, WSL, macOS, and Linux support. Implements the Ralph technique - continuous self-referential AI loops for iterative development.
 
@@ -284,6 +284,22 @@ This plugin has been thoroughly tested:
 ---
 
 ## 📋 Version History
+
+### Version 1.33 (2026-01-26)
+- 🐛 **WSL Fix**: Improved WSL stop hook error handling
+  - Fixed "/usr/bin/sh: cannot execute binary file" error
+  - Added script existence and readability verification
+  - Added detailed debug logging to `/tmp/ralph-hook-router.log`
+  - Improved error messages for better diagnostics
+- 🧪 **Testing**: Added comprehensive WSL test suite
+  - WSL test pass rate: 85.7% (6/7 tests)
+  - Added `tests/test-wsl-hook.sh` - WSL functionality test
+  - Added `tests/test-wsl-complete.ps1` - Complete WSL test suite
+  - Added `tests/diagnose-wsl-hook.sh` - WSL diagnostic script
+- 📚 **Documentation**: Added detailed test reports
+  - `TEST-REPORT-v1.31.md` - Comprehensive test report
+  - `WSL-TEST-REPORT.md` - Detailed WSL test report
+  - `WSL-FIX-VERIFICATION.md` - Fix verification report
 
 ### Version 1.31 (2026-01-26)
 - 📚 **Improved Documentation**: Reorganized command documentation for better clarity

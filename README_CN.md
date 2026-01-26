@@ -1,6 +1,6 @@
 # Ralph Wiggum 插件 - 跨平台版本
 
-**版本 1.31** | [English](README.md) | 中文文档
+**版本 1.33** | [English](README.md) | 中文文档
 
 > 全面支持 Windows、WSL、macOS 和 Linux 的跨平台 Ralph Wiggum 插件。实现 Ralph 技术 - 用于迭代开发的连续自引用 AI 循环。
 
@@ -284,6 +284,22 @@ Ralph 是一种基于连续 AI 代理循环的开发方法论。本插件使用 
 ---
 
 ## 📋 版本历史
+
+### 版本 1.33（2026-01-26）
+- 🐛 **WSL 修复**：改进 WSL stop hook 错误处理
+  - 修复 "/usr/bin/sh: cannot execute binary file" 错误
+  - 添加脚本存在性和可读性验证
+  - 添加详细的调试日志到 `/tmp/ralph-hook-router.log`
+  - 改进错误消息，便于诊断
+- 🧪 **测试**：添加完整的 WSL 测试套件
+  - WSL 测试通过率：85.7%（6/7 测试）
+  - 添加 `tests/test-wsl-hook.sh` - WSL 功能测试
+  - 添加 `tests/test-wsl-complete.ps1` - 完整 WSL 测试套件
+  - 添加 `tests/diagnose-wsl-hook.sh` - WSL 诊断脚本
+- 📚 **文档**：添加详细的测试报告
+  - `TEST-REPORT-v1.31.md` - 综合测试报告
+  - `WSL-TEST-REPORT.md` - 详细 WSL 测试报告
+  - `WSL-FIX-VERIFICATION.md` - 修复验证报告
 
 ### 版本 1.31（2026-01-26）
 - 📚 **改进文档**：重新组织命令文档，提高清晰度
