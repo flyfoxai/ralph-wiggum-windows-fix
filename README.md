@@ -8,14 +8,92 @@
 
 ## ✨ What's New in Version 1.33
 
-### 🐛 WSL Fixes
+### A. Bug Fixes
 
-Fixed WSL stop hook errors and improved stability:
+**Fixed Original Plugin Errors**:
+- ✅ **WSL Compatibility**: Fixed "/usr/bin/sh: cannot execute binary file" error in WSL environment
+- ✅ **Script Verification**: Added existence and readability checks before execution
+- ✅ **Error Handling**: Improved error messages with detailed diagnostics
+- ✅ **Cross-Platform**: Enhanced compatibility across Windows, WSL, macOS, and Linux
 
-- ✅ Fixed "/usr/bin/sh: cannot execute binary file" error
-- ✅ Added script verification and detailed logging
-- ✅ WSL test pass rate: 85.7%
-- ✅ Overall test pass rate: 98.3%
+**Test Results**:
+- WSL test pass rate: 85.7% (6/7 tests)
+- Cross-platform test pass rate: 96.6% (28/29 tests)
+- Overall test pass rate: 98.3% (57/58 tests)
+
+### B. New Features
+
+**Enhanced Functionality**:
+- ✅ **Debug Logging**: Added detailed logging to `/tmp/ralph-hook-router.log` for troubleshooting
+- ✅ **Diagnostic Tools**: New test suite for WSL environment validation
+  - `tests/test-wsl-hook.sh` - WSL functionality test
+  - `tests/test-wsl-complete.ps1` - Complete test suite
+  - `tests/diagnose-wsl-hook.sh` - Diagnostic script
+- ✅ **Documentation**: Comprehensive test reports and verification documents
+  - `TEST-REPORT-v1.31.md` - Full test report
+  - `WSL-TEST-REPORT.md` - WSL-specific analysis
+  - `WSL-FIX-VERIFICATION.md` - Fix verification
+
+---
+
+## 📖 Usage
+
+### Basic Commands
+
+**Single Task (Recommended)**:
+```bash
+# Direct command
+/ralph-smart "Implement user authentication"
+/ralph-smart "Fix the bug in login.js"
+/ralph-smart "Add dark mode support"
+```
+
+**Single Task (From File)**:
+```bash
+/ralph-smart task.txt
+/ralph-smart prompt.md
+```
+
+**Multi-Task** (v1.30+):
+```bash
+/ralph-smart tasks.md
+```
+
+**Configure Default Iterations** (v1.30+):
+```bash
+/ralph-smart-setmaxiterations 10
+```
+
+**Traditional Loop** (with parameters):
+```bash
+/ralph-loop "Build a REST API" --max-iterations 20
+```
+
+**Cancel Loop**:
+```bash
+/cancel-ralph
+```
+
+---
+
+## 🚀 Installation
+
+### Install This Cross-Platform Version
+
+Install from GitHub repository:
+
+```bash
+# In Claude Code, run:
+/plugin install https://github.com/flyfoxai/ralph-wiggum-windows-fix.git
+```
+
+Or install via marketplace (if available):
+
+```bash
+/plugin install ralph-wiggum-cross-platform
+```
+
+**Note**: This is the enhanced cross-platform version with WSL fixes and additional features. For the original version, use `/plugin install ralph-wiggum`.
 
 ---
 
@@ -40,38 +118,7 @@ Ralph is a development methodology based on continuous AI agent loops. The plugi
 - 🛡️ Safety limits with max iterations
 - 📊 Progress tracking and state management
 - 🌍 Full cross-platform support (Windows, WSL, macOS, Linux)
-- 🎯 Multi-task sequential execution (NEW in v1.30)
-
----
-
-## 🚀 Quick Start
-
-### Installation
-
-Install via Claude Code plugin marketplace:
-
-```bash
-/plugin install ralph-wiggum
-```
-
-### Basic Usage
-
-```bash
-# Set default max iterations (NEW in v1.30)
-/ralph-smart-setmaxiterations 10
-
-# Single task with Smart Ralph (uses default max iterations)
-/ralph-smart "Implement user authentication"
-
-# Multiple tasks from file (NEW in v1.30)
-/ralph-smart tasks.md
-
-# Basic Ralph loop
-/ralph-loop "Build a REST API" --max-iterations 20
-
-# Cancel the loop
-/cancel-ralph
-```
+- 🎯 Multi-task sequential execution (v1.30+)
 
 ---
 

@@ -8,14 +8,92 @@
 
 ## ✨ 版本 1.33 更新内容
 
-### 🐛 WSL 修复
+### A. 问题修复
 
-修复了 WSL 环境下的 stop hook 错误，提升稳定性：
+**修复原版插件错误**：
+- ✅ **WSL 兼容性**：修复 WSL 环境下 "/usr/bin/sh: cannot execute binary file" 错误
+- ✅ **脚本验证**：添加执行前的存在性和可读性检查
+- ✅ **错误处理**：改进错误消息，提供详细诊断信息
+- ✅ **跨平台**：增强 Windows、WSL、macOS 和 Linux 的兼容性
 
-- ✅ 修复 "/usr/bin/sh: cannot execute binary file" 错误
-- ✅ 添加脚本验证和详细日志
-- ✅ WSL 测试通过率：85.7%
-- ✅ 总体测试通过率：98.3%
+**测试结果**：
+- WSL 测试通过率：85.7%（6/7 测试）
+- 跨平台测试通过率：96.6%（28/29 测试）
+- 总体测试通过率：98.3%（57/58 测试）
+
+### B. 新增功能
+
+**增强功能**：
+- ✅ **调试日志**：添加详细日志到 `/tmp/ralph-hook-router.log`，便于问题排查
+- ✅ **诊断工具**：新增 WSL 环境验证测试套件
+  - `tests/test-wsl-hook.sh` - WSL 功能测试
+  - `tests/test-wsl-complete.ps1` - 完整测试套件
+  - `tests/diagnose-wsl-hook.sh` - 诊断脚本
+- ✅ **文档**：全面的测试报告和验证文档
+  - `TEST-REPORT-v1.31.md` - 完整测试报告
+  - `WSL-TEST-REPORT.md` - WSL 专项分析
+  - `WSL-FIX-VERIFICATION.md` - 修复验证报告
+
+---
+
+## 📖 使用方法
+
+### 基本命令
+
+**单任务（推荐）**：
+```bash
+# 直接命令
+/ralph-smart "实现用户认证"
+/ralph-smart "修复 login.js 中的 bug"
+/ralph-smart "添加暗黑模式支持"
+```
+
+**单任务（从文件）**：
+```bash
+/ralph-smart task.txt
+/ralph-smart prompt.md
+```
+
+**多任务**（v1.30+）：
+```bash
+/ralph-smart tasks.md
+```
+
+**配置默认迭代次数**（v1.30+）：
+```bash
+/ralph-smart-setmaxiterations 10
+```
+
+**传统循环**（带参数）：
+```bash
+/ralph-loop "构建 REST API" --max-iterations 20
+```
+
+**取消循环**：
+```bash
+/cancel-ralph
+```
+
+---
+
+## 🚀 安装
+
+### 安装此跨平台版本
+
+从 GitHub 仓库安装：
+
+```bash
+# 在 Claude Code 中运行：
+/plugin install https://github.com/flyfoxai/ralph-wiggum-windows-fix.git
+```
+
+或通过市场安装（如果可用）：
+
+```bash
+/plugin install ralph-wiggum-cross-platform
+```
+
+**注意**：这是增强的跨平台版本，包含 WSL 修复和额外功能。如需原版，请使用 `/plugin install ralph-wiggum`。
 
 ---
 
@@ -40,38 +118,7 @@ Ralph 是一种基于连续 AI 代理循环的开发方法论。本插件使用 
 - 🛡️ 最大迭代次数安全限制
 - 📊 进度跟踪和状态管理
 - 🌍 完整跨平台支持（Windows、WSL、macOS、Linux）
-- 🎯 多任务顺序执行（v1.30 新增）
-
----
-
-## 🚀 快速开始
-
-### 安装
-
-通过 Claude Code 插件市场安装：
-
-```bash
-/plugin install ralph-wiggum
-```
-
-### 基本使用
-
-```bash
-# 设置默认最大迭代次数（v1.30 新增）
-/ralph-smart-setmaxiterations 10
-
-# 单任务智能 Ralph（使用默认最大迭代次数）
-/ralph-smart "实现用户认证"
-
-# 从文件执行多任务（v1.30 新增）
-/ralph-smart tasks.md
-
-# 基本 Ralph 循环
-/ralph-loop "构建 REST API" --max-iterations 20
-
-# 取消循环
-/cancel-ralph
-```
+- 🎯 多任务顺序执行（v1.30+）
 
 ---
 
