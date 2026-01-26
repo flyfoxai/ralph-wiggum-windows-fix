@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Cross-platform Ralph Wiggum plugin with comprehensive Windows, WSL, macOS, and Linux support",
-    "version": "1.33"
+    "version": "1.34"
   },
   "plugins": [
     {
@@ -16,7 +16,7 @@
         "url": "https://github.com/flyfoxai/ralph-wiggum-windows-fix.git"
       },
       "description": "Interactive self-referential AI loops for iterative development with full cross-platform support (Windows, WSL, macOS, Linux, Git Bash, Cygwin)",
-      "version": "1.33",
+      "version": "1.34",
       "strict": true
     }
   ]

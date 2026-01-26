@@ -5,6 +5,26 @@ All notable changes to the Ralph Wiggum plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.34] - 2026-01-26
+
+### Fixed
+- **Critical WSL Hook Error**: Completely resolved "/usr/bin/sh: cannot execute binary file" error
+  - Changed `sh` to `bash` in hooks.json for darwin/linux platforms
+  - Root cause: `sh` command behavior inconsistency in WSL environments
+  - Previous fix didn't address the actual hook call chain
+
+### Added
+- **Real-Scenario Test**: `tests/test-real-hook-call.sh`
+  - Simulates exact Claude Code hook call chain
+  - Tests both bash and sh execution methods
+  - Verifies log file creation and content
+  - 100% pass rate in Git Bash and WSL
+
+### Verified
+- ✅ Git Bash: 100% pass rate
+- ✅ WSL: 100% pass rate
+- ✅ Real hook call simulation: 100% pass rate
+
 ## [1.33] - 2026-01-26
 
 ### Fixed

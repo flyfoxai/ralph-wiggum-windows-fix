@@ -1,8 +1,30 @@
 # Ralph Wiggum 插件 - 跨平台版本
 
-**版本 1.33** | [English](README.md) | 中文文档
+**版本 1.34** | [English](README.md) | 中文文档
 
 > 全面支持 Windows、WSL、macOS 和 Linux 的跨平台 Ralph Wiggum 插件。实现 Ralph 技术 - 用于迭代开发的连续自引用 AI 循环。
+
+---
+
+## ✨ 版本 1.34 更新内容
+
+### 关键 WSL 修复
+
+**彻底解决 WSL Hook 错误**：
+- ✅ 将 hooks.json 中的 `sh` 改为 `bash`，解决 WSL 兼容性问题
+- ✅ 根本原因：`sh` 命令在 WSL 中导致 "/usr/bin/sh: cannot execute binary file" 错误
+- ✅ 添加真实场景测试（`tests/test-real-hook-call.sh`），模拟 Claude Code 实际调用方式
+- ✅ 在 Git Bash 和 WSL 环境中验证通过
+
+**为什么之前的修复无效**：
+- 之前的测试没有模拟真实的 hook 调用链
+- 测试通过但实际使用失败
+- 新测试覆盖了 Claude Code 使用的确切场景
+
+**测试结果**：
+- ✅ Git Bash：100% 通过
+- ✅ WSL：100% 通过
+- ✅ 真实 hook 调用模拟：100% 通过
 
 ---
 
@@ -277,6 +299,16 @@ Ralph 是一种基于连续 AI 代理循环的开发方法论。本插件使用 
 ---
 
 ## 📋 版本历史
+
+### 版本 1.34（2026-01-26）
+- 🐛 **关键 WSL 修复**：彻底解决 "/usr/bin/sh: cannot execute binary file" 错误
+  - 将 hooks.json 中的 `sh` 改为 `bash`（darwin/linux 平台）
+  - 根本原因：WSL 环境下 `sh` 命令行为不一致
+  - 添加真实场景测试，模拟 Claude Code 实际调用方式
+- 🧪 **改进测试**：新增真实 hook 调用场景测试套件
+  - 添加 `tests/test-real-hook-call.sh` - 模拟真实 hooks.json 调用链
+  - 在 Git Bash 和 WSL 环境中验证
+  - 所有环境 100% 通过率
 
 ### 版本 1.33（2026-01-26）
 - 🐛 **WSL 修复**：改进 WSL stop hook 错误处理
