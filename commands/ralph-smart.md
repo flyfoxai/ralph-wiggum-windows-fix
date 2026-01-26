@@ -1,6 +1,6 @@
 ---
 description: "Start Smart Ralph Loop with intelligent completion detection"
-argument-hint: "PROMPT|FILE [--max-iterations N] [--completion-promise TEXT]"
+argument-hint: "PROMPT|FILE"
 allowed-tools: ["Bash(pwsh:*)"]
 hide-from-slash-command-tool: "false"
 ---
@@ -13,17 +13,12 @@ Start an intelligent Ralph loop that automatically detects task completion.
 ```
 /ralph-smart "Your task description"
 /ralph-smart path/to/prompt.txt
-/ralph-smart "Your task" --max-iterations 20
-/ralph-smart prompt.md --completion-promise "All done"
+/ralph-smart tasks.md
 ```
 
 **Arguments:**
 - `PROMPT` - Task description as a string
-- `FILE` - Path to a text file containing the task description
-
-**Options:**
-- `--max-iterations <n>` - Maximum iterations (optional, uses default if not specified)
-- `--completion-promise <text>` - Phrase that signals completion
+- `FILE` - Path to a text file containing the task description or multiple tasks
 
 **Features:**
 - Autonomous iteration with progress tracking
@@ -32,19 +27,22 @@ Start an intelligent Ralph loop that automatically detects task completion.
 - Task progress monitoring
 - State persistence
 - Read prompts from files
-- Uses default max iterations from config
+- Multi-task support (NEW in v1.30)
+- Uses default max iterations from config (default: 10)
 
 **The loop will automatically stop when:**
 - Task completion is detected
 - All todos are marked complete
-- Completion promise text is found
-- Max iterations reached
+- Max iterations reached (configured via `/ralph-smart-setmaxiterations`)
 - User interrupts (Ctrl+C)
 
 **Setting Default Max Iterations:**
 ```
+/ralph-smart-setmaxiterations 10
 /ralph-smart-setmaxiterations 20
 ```
+
+**Note**: `/ralph-smart` does not accept `--max-iterations` parameter. Use `/ralph-smart-setmaxiterations` to configure the default value.
 
 Execute the Smart Ralph Loop:
 
@@ -53,5 +51,3 @@ pwsh -NoProfile -ExecutionPolicy Bypass -Command "Import-Module '${CLAUDE_PLUGIN
 ```
 
 Please work on the task. The Smart Ralph Loop will monitor your progress and automatically complete when done.
-
-CRITICAL RULE: If a completion promise is set, you may ONLY output it when the statement is completely and unequivocally TRUE. Do not output false promises to escape the loop.

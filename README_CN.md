@@ -112,10 +112,10 @@ Ralph 是一种基于连续 AI 代理循环的开发方法论。本插件使用 
 
 ```bash
 # 设置默认最大迭代次数（v1.30 新增）
-/ralph-smart-setmaxiterations 20
+/ralph-smart-setmaxiterations 10
 
-# 单任务智能 Ralph
-/ralph-smart "实现用户认证" --max-iterations 15
+# 单任务智能 Ralph（使用默认最大迭代次数）
+/ralph-smart "实现用户认证"
 
 # 从文件执行多任务（v1.30 新增）
 /ralph-smart tasks.md
@@ -136,7 +136,7 @@ Ralph 是一种基于连续 AI 代理循环的开发方法论。本插件使用 
 
 **单任务**：
 ```bash
-/ralph-smart "<提示>" --max-iterations <次数>
+/ralph-smart "<提示>"
 ```
 
 **多任务**（v1.30 新增）：
@@ -151,6 +151,9 @@ Ralph 是一种基于连续 AI 代理循环的开发方法论。本插件使用 
 - ⏸️ 优雅的中断处理（Ctrl+C）
 - 💾 跨中断的状态持久化
 - 🔄 多任务顺序执行
+- 🔢 使用默认最大迭代次数（通过 `/ralph-smart-setmaxiterations` 设置）
+
+**注意**：`/ralph-smart` 不接受 `--max-iterations` 参数。使用 `/ralph-smart-setmaxiterations` 配置默认值（默认：10 次迭代）。
 
 ### `/ralph-loop`
 启动基本的 Ralph 循环，手动完成。
@@ -170,7 +173,7 @@ Ralph 是一种基于连续 AI 代理循环的开发方法论。本插件使用 
 ```
 
 ### `/ralph-smart-setmaxiterations`（v1.30 新增）
-设置所有 Ralph 命令的默认最大迭代次数。
+设置 `/ralph-smart` 命令的默认最大迭代次数。
 
 **语法**：
 ```bash
@@ -179,15 +182,18 @@ Ralph 是一种基于连续 AI 代理循环的开发方法论。本插件使用 
 
 **示例**：
 ```bash
+/ralph-smart-setmaxiterations 10
 /ralph-smart-setmaxiterations 20
 /ralph-smart-setmaxiterations 30
 ```
 
 **功能说明**：
-- 为 `/ralph-loop` 和 `/ralph-smart` 设置默认最大迭代次数
-- 当不指定 `--max-iterations` 参数时使用此值
-- 推荐范围：15-30 次迭代
+- 为 `/ralph-smart` 命令设置默认最大迭代次数
+- 安装后默认值：10 次迭代
+- 推荐范围：10-30 次迭代
 - 存储位置：`~/.claude/ralph-config.json`
+
+**注意**：此设置仅影响 `/ralph-smart` 命令。`/ralph-loop` 命令需要显式指定 `--max-iterations` 参数。
 
 ### `/cancel-ralph`
 取消当前的 Ralph 循环。

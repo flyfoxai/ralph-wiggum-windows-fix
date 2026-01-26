@@ -112,10 +112,10 @@ Install via Claude Code plugin marketplace:
 
 ```bash
 # Set default max iterations (NEW in v1.30)
-/ralph-smart-setmaxiterations 20
+/ralph-smart-setmaxiterations 10
 
-# Single task with Smart Ralph
-/ralph-smart "Implement user authentication" --max-iterations 15
+# Single task with Smart Ralph (uses default max iterations)
+/ralph-smart "Implement user authentication"
 
 # Multiple tasks from file (NEW in v1.30)
 /ralph-smart tasks.md
@@ -136,7 +136,7 @@ Start an intelligent Ralph loop with automatic completion detection.
 
 **Single Task**:
 ```bash
-/ralph-smart "<prompt>" --max-iterations <n>
+/ralph-smart "<prompt>"
 ```
 
 **Multi-Task** (NEW in v1.30):
@@ -151,6 +151,9 @@ Start an intelligent Ralph loop with automatic completion detection.
 - ⏸️ Graceful interruption handling (Ctrl+C)
 - 💾 State persistence across interruptions
 - 🔄 Multi-task sequential execution
+- 🔢 Uses default max iterations (set via `/ralph-smart-setmaxiterations`)
+
+**Note**: `/ralph-smart` does not accept `--max-iterations` parameter. Use `/ralph-smart-setmaxiterations` to configure the default value (default: 10 iterations).
 
 ### `/ralph-loop`
 Start a basic Ralph loop with manual completion.
@@ -170,7 +173,7 @@ Start a basic Ralph loop with manual completion.
 ```
 
 ### `/ralph-smart-setmaxiterations` (NEW in v1.30)
-Set the default maximum iterations for all Ralph commands.
+Set the default maximum iterations for `/ralph-smart` command.
 
 **Syntax**:
 ```bash
@@ -179,15 +182,18 @@ Set the default maximum iterations for all Ralph commands.
 
 **Examples**:
 ```bash
+/ralph-smart-setmaxiterations 10
 /ralph-smart-setmaxiterations 20
 /ralph-smart-setmaxiterations 30
 ```
 
 **What it does**:
-- Sets the default max iterations for `/ralph-loop` and `/ralph-smart`
-- Used when you don't specify `--max-iterations` parameter
-- Recommended range: 15-30 iterations
+- Sets the default max iterations for `/ralph-smart` command
+- Default value after installation: 10 iterations
+- Recommended range: 10-30 iterations
 - Stored in: `~/.claude/ralph-config.json`
+
+**Note**: This setting only affects `/ralph-smart`. The `/ralph-loop` command requires explicit `--max-iterations` parameter.
 
 ### `/cancel-ralph`
 Cancel the current Ralph loop.

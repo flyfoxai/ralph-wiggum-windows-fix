@@ -15,10 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Auto-switching when current task completes (≥90%)
   - State persistence for multi-task sessions
   - Rich progress visualization with status indicators
-- **New Command**: `/ralph-smart-setmaxiterations` - Set default max iterations for all Ralph commands
+- **New Command**: `/ralph-smart-setmaxiterations` - Set default max iterations for `/ralph-smart` command
   - Configure default max iterations globally
-  - No need to specify `--max-iterations` every time
+  - Default value after installation: 10 iterations
   - Stored in `~/.claude/ralph-config.json`
+  - Only affects `/ralph-smart` command
 - **Multi-Task Documentation**:
   - Complete multi-task guide (docs/MULTI-TASK-GUIDE.md)
   - Implementation details (MULTI-TASK-IMPLEMENTATION.md)
@@ -30,6 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Graceful multi-task interruption handling
 
 ### Changed
+- **BREAKING**: `/ralph-smart` no longer accepts `--max-iterations` parameter
+  - Use `/ralph-smart-setmaxiterations` to configure default value
+  - Default max iterations: 10 (was unlimited)
+- `/ralph-loop` still supports `--max-iterations` parameter (unchanged)
 - Updated README.md and README_CN.md with v1.30 features
 - Enhanced `/ralph-smart` command to support both single and multi-task modes
 - Improved progress tracking and visualization
