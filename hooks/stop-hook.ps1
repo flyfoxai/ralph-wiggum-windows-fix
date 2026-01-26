@@ -7,6 +7,16 @@ $ErrorActionPreference = "Stop"
 # Read hook input from stdin (advanced stop hook API)
 $hookInput = [Console]::In.ReadToEnd()
 
+# Import task queue manager for multi-task support
+$taskQueueManagerPath = Join-Path $PSScriptRoot "..\lib\task-queue-manager.ps1"
+if (Test-Path $taskQueueManagerPath) {
+    Import-Module $taskQueueManagerPath -Force -ErrorAction SilentlyContinue
+}
+
+# Check for Multi-Task Ralph Loop state file
+$multiTaskStateFile = Join-Path $env:TEMP "smart-ralph-multi-task-state.json"
+$isMultiTaskMode = Test-Path $multiTaskStateFile
+
 # Check for Smart Ralph Loop state file
 $smartRalphStateFile = Join-Path $env:TEMP "smart-ralph-state.json"
 if (Test-Path $smartRalphStateFile) {
@@ -121,6 +131,164 @@ if ([string]::IsNullOrWhiteSpace($lastOutput)) {
     Remove-Item $ralphStateFile -Force
     exit 0
 }
+
+# ============================================
+# MULTI-TASK MODE HANDLING
+# ============================================
+if ($isMultiTaskMode) {
+    try {
+        # Load multi-task state
+        $multiStateJson = Get-Content $multiTaskStateFile -Raw -Encoding UTF8
+        $multiStateObj = $multiStateJson | ConvertFrom-Json
+
+        # Convert to hashtable for easier manipulation
+        $multiState = @{}
+        $multiStateObj.PSObject.Properties | ForEach-Object {
+            $multiState[$_.Name] = $_.Value
+        }
+
+        # Get current task
+        $currentTaskIndex = $multiState.currentTaskIndex
+        $currentTask = $multiState.tasks[$currentTaskIndex]
+
+        # Increment total iterations
+        $multiState.totalIterations++
+        $multiState.tasks[$currentTaskIndex].iterations++
+
+        # Parse task progress from output (check for completion criteria)
+        $criteriaPattern = '-\s+\[(x| )\]\s+(.+?)(?:\r?\n|$)'
+        $criteriaMatches = [regex]::Matches($lastOutput, $criteriaPattern)
+
+        $completedCriteria = 0
+        $totalCriteria = $currentTask.acceptance_criteria.Count
+
+        if ($criteriaMatches.Count -gt 0) {
+            foreach ($match in $criteriaMatches) {
+                $isChecked = $match.Groups[1].Value -eq 'x'
+                if ($isChecked) {
+                    $completedCriteria++
+                }
+            }
+            $totalCriteria = [math]::Max($totalCriteria, $criteriaMatches.Count)
+        }
+
+        # Calculate completion percentage
+        $completionPercent = if ($totalCriteria -gt 0) {
+            [math]::Round(($completedCriteria / $totalCriteria) * 100)
+        } else {
+            0
+        }
+
+        # Update task progress
+        $multiState.tasks[$currentTaskIndex].completion = $completionPercent
+
+        # Check if current task is complete (>= 90%)
+        if ($completionPercent -ge 90) {
+            Write-Host "✅ Task $($currentTask.id) completed: $($currentTask.title) ($completionPercent%)" -ForegroundColor Green
+
+            # Mark task as completed
+            $multiState.tasks[$currentTaskIndex].status = "completed"
+            $multiState.tasks[$currentTaskIndex].completion = 100
+            $multiState.tasks[$currentTaskIndex].endTime = (Get-Date).ToString("o")
+
+            # Move to next task
+            $multiState.currentTaskIndex++
+
+            # Check if there are more tasks
+            if ($multiState.currentTaskIndex -lt $multiState.tasks.Count) {
+                # Start next task
+                $nextTask = $multiState.tasks[$multiState.currentTaskIndex]
+                $nextTask.status = "in_progress"
+                $nextTask.startTime = (Get-Date).ToString("o")
+
+                # Save updated state
+                $multiState | ConvertTo-Json -Depth 10 | Set-Content $multiTaskStateFile -Encoding UTF8
+
+                # Build prompt for next task
+                $taskPrompt = @"
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 开始任务 $($nextTask.id): $($nextTask.title)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**描述**: $($nextTask.description)
+
+**验收标准**:
+$($nextTask.acceptance_criteria | ForEach-Object { "- [ ] $($_.text)" } | Out-String)
+
+请开始实现此任务。完成后，请确保所有验收标准都已满足。
+"@
+
+                # Update iteration in frontmatter
+                $nextIteration = $iteration + 1
+                $newContent = $stateContent -replace 'iteration:\s*\d+', "iteration: $nextIteration"
+                Set-Content -Path $ralphStateFile -Value $newContent -Encoding UTF8 -NoNewline
+
+                # Build system message
+                $systemMsg = "🔄 Ralph iteration $nextIteration | Multi-Task: $($multiState.currentTaskIndex + 1)/$($multiState.tasks.Count) | Task $($nextTask.id): $($nextTask.title)"
+
+                # Output JSON to block exit and feed next task prompt
+                $response = @{
+                    decision = "block"
+                    reason = $taskPrompt
+                    systemMessage = $systemMsg
+                } | ConvertTo-Json -Compress
+
+                Write-Output $response
+                exit 0
+            } else {
+                # All tasks completed!
+                Write-Host "🎉 All tasks completed!" -ForegroundColor Green
+
+                # Clean up state files
+                Remove-Item $multiTaskStateFile -Force -ErrorAction SilentlyContinue
+                Remove-Item $ralphStateFile -Force -ErrorAction SilentlyContinue
+
+                # Allow exit
+                exit 0
+            }
+        } else {
+            # Task not complete - continue current task
+            Write-Host "⏳ Task $($currentTask.id) in progress: $completionPercent% complete" -ForegroundColor Yellow
+
+            # Save updated state
+            $multiState | ConvertTo-Json -Depth 10 | Set-Content $multiTaskStateFile -Encoding UTF8
+
+            # Continue with current task prompt
+            $continuePrompt = @"
+继续任务 $($currentTask.id): $($currentTask.title)
+
+当前进度: $completionPercent% ($completedCriteria/$totalCriteria 验收标准完成)
+
+请继续完成剩余的验收标准。
+"@
+
+            # Update iteration
+            $nextIteration = $iteration + 1
+            $newContent = $stateContent -replace 'iteration:\s*\d+', "iteration: $nextIteration"
+            Set-Content -Path $ralphStateFile -Value $newContent -Encoding UTF8 -NoNewline
+
+            # Build system message
+            $systemMsg = "🔄 Ralph iteration $nextIteration | Multi-Task: $($currentTaskIndex + 1)/$($multiState.tasks.Count) | Task $($currentTask.id): $completionPercent%"
+
+            # Output JSON to block exit
+            $response = @{
+                decision = "block"
+                reason = $continuePrompt
+                systemMessage = $systemMsg
+            } | ConvertTo-Json -Compress
+
+            Write-Output $response
+            exit 0
+        }
+    } catch {
+        Write-Warning "⚠️  Multi-task mode error: $_. Falling back to single-task mode."
+        # Fall through to single-task mode
+    }
+}
+
+# ============================================
+# SINGLE-TASK MODE HANDLING (Original Logic)
+# ============================================
 
 # Check for completion promise (only if set)
 if ($completionPromise -and $completionPromise -ne "null" -and $completionPromise.Length -gt 0) {

@@ -20,6 +20,18 @@ if (Test-Path $configModule) {
     Import-Module $configModule -Force
 }
 
+# Import task queue manager
+$taskQueueModule = Join-Path $PSScriptRoot "task-queue-manager.ps1"
+if (Test-Path $taskQueueModule) {
+    Import-Module $taskQueueModule -Force
+}
+
+# Import task order evaluator
+$taskOrderModule = Join-Path $PSScriptRoot "task-order-evaluator.ps1"
+if (Test-Path $taskOrderModule) {
+    Import-Module $taskOrderModule -Force
+}
+
 # State file location
 $script:StateFile = Join-Path $env:TEMP "smart-ralph-state.json"
 $script:IsRunning = $true
@@ -307,6 +319,187 @@ function Test-CompletionCriteria {
     }
 }
 
+# Parse tasks from file content
+function Get-TasksFromFile {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$FilePath
+    )
+
+    # Use task-parser.ps1 to parse tasks
+    $taskParserPath = Join-Path $PSScriptRoot "task-parser.ps1"
+
+    if (-not (Test-Path $taskParserPath)) {
+        Write-Warning "Task parser not found: $taskParserPath"
+        return $null
+    }
+
+    try {
+        $result = & $taskParserPath -TaskFilePath $FilePath 2>&1
+
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "Task parser failed with exit code: $LASTEXITCODE"
+            return $null
+        }
+
+        $taskData = $result | ConvertFrom-Json
+
+        if ($taskData.tasks.Count -gt 1) {
+            return $taskData.tasks
+        }
+
+        return $null
+    } catch {
+        Write-Warning "Failed to parse tasks from file: $_"
+        return $null
+    }
+}
+
+# Show multi-task progress
+function Show-MultiTaskProgress {
+    param(
+        [Parameter(Mandatory=$true)]
+        [hashtable]$State
+    )
+
+    $completedCount = @($State.tasks | Where-Object { $_.status -eq "completed" }).Count
+    $totalCount = $State.tasks.Count
+    $progressPercent = if ($totalCount -gt 0) {
+        [math]::Round(($completedCount / $totalCount) * 100)
+    } else {
+        0
+    }
+
+    Write-Host ""
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+    Write-Host "🔄 Smart Ralph - 多任务进度" -ForegroundColor Cyan
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+    Write-Host "📋 总进度: $completedCount/$totalCount 任务完成 ($progressPercent%)" -ForegroundColor White
+    Write-Host "🔁 总迭代: $($State.totalIterations) 次" -ForegroundColor White
+    Write-Host ""
+
+    for ($i = 0; $i -lt $State.tasks.Count; $i++) {
+        $task = $State.tasks[$i]
+        $isCurrent = ($i -eq $State.currentTaskIndex)
+
+        $statusIcon = switch ($task.status) {
+            "completed" { "✅" }
+            "in_progress" { "●" }
+            default { "☐" }
+        }
+
+        $taskLine = "$statusIcon 任务$($task.id): $($task.title) ($($task.completion)%"
+
+        if ($task.iterations -gt 0) {
+            $taskLine += " - $($task.iterations)次迭代"
+        }
+
+        $taskLine += ")"
+
+        if ($isCurrent) {
+            $taskLine += " ← 当前"
+            Write-Host $taskLine -ForegroundColor Yellow
+        } elseif ($task.status -eq "completed") {
+            Write-Host $taskLine -ForegroundColor Green
+        } else {
+            Write-Host $taskLine -ForegroundColor Gray
+        }
+    }
+
+    if ($State.aiAnalysis -and $State.aiAnalysis.reasoning) {
+        Write-Host ""
+        Write-Host "🤖 AI 建议顺序: $($State.aiOrderedTaskIds -join ' → ')" -ForegroundColor Cyan
+        Write-Host "   理由: $($State.aiAnalysis.reasoning)" -ForegroundColor Gray
+    }
+
+    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
+    Write-Host ""
+}
+
+# Test completion criteria
+function Test-CompletionCriteria {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Output,
+
+        [Parameter(Mandatory=$false)]
+        [string]$CompletionPromise = "",
+
+        [Parameter(Mandatory=$true)]
+        [hashtable]$TaskProgress
+    )
+
+    # Check explicit completion signals
+    $completionSignals = @(
+        "task completed",
+        "all done",
+        "finished successfully",
+        "implementation complete",
+        "work is complete",
+        "completed successfully"
+    )
+
+    $hasCompletionSignal = $false
+    foreach ($signal in $completionSignals) {
+        if ($Output -match [regex]::Escape($signal)) {
+            $hasCompletionSignal = $true
+            break
+        }
+    }
+
+    # Check if completion promise is met
+    $meetsPromise = $false
+    if ($CompletionPromise -and $CompletionPromise.Trim() -ne "") {
+        $meetsPromise = $Output -match [regex]::Escape($CompletionPromise)
+    }
+
+    # Check task completion (100% progress)
+    $allTasksComplete = $TaskProgress.hasTasks -and ($TaskProgress.progress -eq 100)
+
+    # Check for blocking errors
+    $blockingErrorPatterns = @(
+        "fatal error",
+        "cannot proceed",
+        "blocked",
+        "failed to",
+        "error:",
+        "exception:"
+    )
+
+    $hasBlockingError = $false
+    foreach ($pattern in $blockingErrorPatterns) {
+        if ($Output -match "(?i)$pattern") {
+            $hasBlockingError = $true
+            break
+        }
+    }
+
+    # Determine if should complete
+    $shouldComplete = ($hasCompletionSignal -or $meetsPromise -or $allTasksComplete) -and -not $hasBlockingError
+
+    # Determine reason
+    $reason = if ($hasBlockingError) {
+        "blocking error detected"
+    } elseif ($hasCompletionSignal) {
+        "completion signal detected"
+    } elseif ($meetsPromise) {
+        "completion promise met"
+    } elseif ($allTasksComplete) {
+        "all tasks completed"
+    } else {
+        "criteria not met"
+    }
+
+    return @{
+        shouldComplete = $shouldComplete
+        reason = $reason
+        hasError = $hasBlockingError
+        hasCompletionSignal = $hasCompletionSignal
+        meetsPromise = $meetsPromise
+        allTasksComplete = $allTasksComplete
+    }
+}
+
 # Start Smart Ralph Loop
 function Start-SmartRalphLoop {
     param(
@@ -323,6 +516,20 @@ function Start-SmartRalphLoop {
     # Check if Prompt is a file path
     if ($Prompt -and (Test-IsFilePath -Argument $Prompt)) {
         Write-Host "📄 Reading prompt from file: $Prompt" -ForegroundColor Cyan
+
+        # Check if this is a multi-task file
+        $tasks = Get-TasksFromFile -FilePath $Prompt
+
+        if ($tasks -and $tasks.Count -gt 1) {
+            # Multi-task mode detected!
+            Write-Host "✅ Detected multi-task file with $($tasks.Count) tasks" -ForegroundColor Green
+            Write-Host ""
+
+            # Initialize multi-task mode
+            return Start-MultiTaskRalphLoop -TaskFile $Prompt -Tasks $tasks -MaxIterations $MaxIterations
+        }
+
+        # Single task or regular prompt file
         try {
             $Prompt = Read-PromptFromFile -FilePath $Prompt
             Write-Host "✅ Loaded prompt ($($Prompt.Length) characters)" -ForegroundColor Green
@@ -455,6 +662,115 @@ function Start-SmartRalphLoop {
         status = "max_iterations"
         reason = "Maximum iterations reached"
         iterations = $MaxIterations
+    }
+}
+
+# Start Multi-Task Ralph Loop
+function Start-MultiTaskRalphLoop {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$TaskFile,
+
+        [Parameter(Mandatory=$true)]
+        [array]$Tasks,
+
+        [Parameter(Mandatory=$false)]
+        [int]$MaxIterations = 50
+    )
+
+    Write-Host "🚀 Starting Multi-Task Ralph Loop" -ForegroundColor Cyan
+    Write-Host "Task File: $TaskFile" -ForegroundColor White
+    Write-Host "Total Tasks: $($Tasks.Count)" -ForegroundColor White
+    Write-Host "Max Iterations: $MaxIterations" -ForegroundColor White
+    Write-Host ""
+
+    # Step 1: Get AI task order evaluation
+    Write-Host "🤖 Requesting AI task order evaluation..." -ForegroundColor Cyan
+
+    $evaluation = Invoke-TaskOrderEvaluation -Tasks $Tasks
+
+    if (-not $evaluation) {
+        Write-Error "Failed to create task order evaluation"
+        return @{
+            status = "error"
+            reason = "Failed to create task order evaluation"
+            iterations = 0
+        }
+    }
+
+    # For now, use default order (AI evaluation will happen in the loop)
+    # In a real implementation, we would send the prompt to Claude and parse the response
+    $aiAnalysis = $evaluation.defaultOrder
+
+    Write-Host "✅ Using task order: $($aiAnalysis.recommended_order -join ', ')" -ForegroundColor Green
+    Write-Host "   Reasoning: $($aiAnalysis.reasoning)" -ForegroundColor Gray
+    Write-Host ""
+
+    # Step 2: Initialize task queue
+    try {
+        $state = Initialize-TaskQueue `
+            -Tasks $Tasks `
+            -OrderedTaskIds $aiAnalysis.recommended_order `
+            -AIAnalysis $aiAnalysis `
+            -MaxIterations $MaxIterations `
+            -TaskFile $TaskFile
+
+        Write-Host "✅ Task queue initialized" -ForegroundColor Green
+    } catch {
+        Write-Error "Failed to initialize task queue: $_"
+        return @{
+            status = "error"
+            reason = "Failed to initialize task queue: $_"
+            iterations = 0
+        }
+    }
+
+    # Step 3: Show initial progress
+    Show-MultiTaskProgress -State $state
+
+    # Step 4: Start with first task
+    $firstTask = $state.tasks[0]
+
+    $initialPrompt = @"
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 多任务模式：开始任务 $($firstTask.id)/$($Tasks.Count)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**任务标题**: $($firstTask.title)
+
+**描述**: $($firstTask.description)
+
+**验收标准**:
+$($firstTask.acceptance_criteria | ForEach-Object { "- [ ] $($_.text)" } | Out-String)
+
+请开始实现此任务。完成后，请确保所有验收标准都已满足。
+
+注意：这是多任务模式，完成此任务后会自动切换到下一个任务。
+"@
+
+    Write-Host "📝 Starting first task..." -ForegroundColor Cyan
+    Write-Host ""
+
+    # Initialize Ralph Loop state for first task
+    Initialize-RalphState -Prompt $initialPrompt -MaxIterations $MaxIterations -CompletionPromise "" | Out-Null
+
+    Write-RalphLog "Starting Multi-Task Ralph Loop: $TaskFile" "INFO"
+    Write-RalphLog "Total tasks: $($Tasks.Count)" "INFO"
+    Write-RalphLog "Max iterations: $MaxIterations" "INFO"
+
+    # Note: The actual loop execution happens through the stop hook
+    # This function just sets up the initial state
+    # The stop hook will handle task switching and progress tracking
+
+    Write-Host "✅ Multi-task mode initialized. The Ralph Loop will now execute tasks sequentially." -ForegroundColor Green
+    Write-Host "   Use Ctrl+C to interrupt at any time." -ForegroundColor Gray
+    Write-Host ""
+
+    return @{
+        status = "initialized"
+        reason = "Multi-task mode initialized"
+        totalTasks = $Tasks.Count
+        iterations = 0
     }
 }
 
