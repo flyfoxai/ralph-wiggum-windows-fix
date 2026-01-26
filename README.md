@@ -111,6 +111,9 @@ Install via Claude Code plugin marketplace:
 ### Basic Usage
 
 ```bash
+# Set default max iterations (NEW in v1.30)
+/ralph-smart-setmaxiterations 20
+
 # Single task with Smart Ralph
 /ralph-smart "Implement user authentication" --max-iterations 15
 
@@ -165,6 +168,26 @@ Start a basic Ralph loop with manual completion.
 ```bash
 /ralph-loop "Build a todo API. Output DONE when complete." --completion-promise "DONE" --max-iterations 30
 ```
+
+### `/ralph-smart-setmaxiterations` (NEW in v1.30)
+Set the default maximum iterations for all Ralph commands.
+
+**Syntax**:
+```bash
+/ralph-smart-setmaxiterations <number>
+```
+
+**Examples**:
+```bash
+/ralph-smart-setmaxiterations 20
+/ralph-smart-setmaxiterations 30
+```
+
+**What it does**:
+- Sets the default max iterations for `/ralph-loop` and `/ralph-smart`
+- Used when you don't specify `--max-iterations` parameter
+- Recommended range: 15-30 iterations
+- Stored in: `~/.claude/ralph-config.json`
 
 ### `/cancel-ralph`
 Cancel the current Ralph loop.
@@ -245,6 +268,7 @@ This plugin has been thoroughly tested:
 - ✨ **NEW**: AI-driven task ordering and dependency analysis
 - ✨ **NEW**: Rich progress visualization for multiple tasks
 - ✨ **NEW**: State persistence for multi-task sessions
+- ✨ **NEW**: `/ralph-smart-setmaxiterations` command for setting default max iterations
 - 📚 **NEW**: Comprehensive multi-task documentation
 - 🧪 **NEW**: 22 unit tests for multi-task functionality
 

@@ -111,6 +111,9 @@ Ralph 是一种基于连续 AI 代理循环的开发方法论。本插件使用 
 ### 基本使用
 
 ```bash
+# 设置默认最大迭代次数（v1.30 新增）
+/ralph-smart-setmaxiterations 20
+
 # 单任务智能 Ralph
 /ralph-smart "实现用户认证" --max-iterations 15
 
@@ -165,6 +168,26 @@ Ralph 是一种基于连续 AI 代理循环的开发方法论。本插件使用 
 ```bash
 /ralph-loop "构建待办事项 API。完成时输出 DONE。" --completion-promise "DONE" --max-iterations 30
 ```
+
+### `/ralph-smart-setmaxiterations`（v1.30 新增）
+设置所有 Ralph 命令的默认最大迭代次数。
+
+**语法**：
+```bash
+/ralph-smart-setmaxiterations <数字>
+```
+
+**示例**：
+```bash
+/ralph-smart-setmaxiterations 20
+/ralph-smart-setmaxiterations 30
+```
+
+**功能说明**：
+- 为 `/ralph-loop` 和 `/ralph-smart` 设置默认最大迭代次数
+- 当不指定 `--max-iterations` 参数时使用此值
+- 推荐范围：15-30 次迭代
+- 存储位置：`~/.claude/ralph-config.json`
 
 ### `/cancel-ralph`
 取消当前的 Ralph 循环。
@@ -245,6 +268,7 @@ Ralph 是一种基于连续 AI 代理循环的开发方法论。本插件使用 
 - ✨ **新增**：AI 驱动的任务排序和依赖分析
 - ✨ **新增**：多任务丰富进度可视化
 - ✨ **新增**：多任务会话状态持久化
+- ✨ **新增**：`/ralph-smart-setmaxiterations` 命令用于设置默认最大迭代次数
 - 📚 **新增**：全面的多任务文档
 - 🧪 **新增**：22 个多任务功能单元测试
 
