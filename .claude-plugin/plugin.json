@@ -1,6 +1,6 @@
 {
   "name": "ralph-wiggum",
-  "version": "1.33",
+  "version": "1.34",
   "description": "Implementation of the Ralph Wiggum technique - continuous self-referential AI loops for interactive iterative development with multi-task support. Run Claude in a while-true loop with automatic task switching and progress tracking.",
   "author": {
     "name": "Daisy Hollman",

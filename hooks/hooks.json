@@ -13,7 +13,7 @@
           {
             "type": "command",
             "comment": "macOS and Linux - shell router for intelligent environment detection",
-            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook-router.sh\"",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook-router.sh\"",
             "platforms": ["darwin", "linux"]
           }
         ]

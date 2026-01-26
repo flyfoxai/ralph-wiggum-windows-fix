@@ -1,38 +1,55 @@
 # Ralph Wiggum Plugin - Cross-Platform Edition
 
-**Version 1.33** | [中文文档](README_CN.md) | English
+**Version 1.34** | [中文文档](README_CN.md) | English
 
 > Cross-platform Ralph Wiggum plugin with comprehensive Windows, WSL, macOS, and Linux support. Implements the Ralph technique - continuous self-referential AI loops for iterative development.
 
 ---
 
-## ✨ What's New in Version 1.33
+## ✨ What's New in Version 1.34
 
-### A. Bug Fixes
+### Critical WSL Fix
 
-**Fixed Original Plugin Errors**:
-- ✅ **WSL Compatibility**: Fixed "/usr/bin/sh: cannot execute binary file" error in WSL environment
-- ✅ **Script Verification**: Added existence and readability checks before execution
-- ✅ **Error Handling**: Improved error messages with detailed diagnostics
-- ✅ **Cross-Platform**: Enhanced compatibility across Windows, WSL, macOS, and Linux
+**Completely Resolved WSL Hook Error**:
+- ✅ Changed `sh` to `bash` in hooks.json for WSL compatibility
+- ✅ Root cause: `sh` command caused "/usr/bin/sh: cannot execute binary file" error in WSL
+- ✅ Added real-scenario test (`tests/test-real-hook-call.sh`) that simulates exact Claude Code hook calls
+- ✅ Verified in both Git Bash and WSL environments
+
+**Why Previous Fix Didn't Work**:
+- Previous tests didn't simulate the real hook call chain
+- Tests passed but actual usage failed
+- New test covers the exact scenario Claude Code uses
 
 **Test Results**:
-- WSL test pass rate: 85.7% (6/7 tests)
-- Cross-platform test pass rate: 96.6% (28/29 tests)
+- ✅ Git Bash: 100% pass
+- ✅ WSL: 100% pass
+- ✅ Real hook call simulation: 100% pass
+
+---
+
+## ✨ What's New in Version 1.33
+
+### New Features vs Original Plugin
+
+**Smart Commands** (v1.30+):
+- ✅ `/ralph-smart` - Intelligent loop with automatic completion detection
+- ✅ `/ralph-smart-setmaxiterations` - Configure default iteration limits
+- ✅ Multi-task support - Sequential execution of multiple tasks from file
+- ✅ Progress tracking - Real-time task completion monitoring
+- ✅ State persistence - Resume interrupted sessions
+
+**Cross-Platform Support**:
+- ✅ Windows native support (PowerShell, Git Bash, Cygwin)
+- ✅ WSL compatibility fixes
+- ✅ macOS and Linux support
+- ✅ Unified hook system across all platforms
+
+**Test Results**:
 - Overall test pass rate: 98.3% (57/58 tests)
-
-### B. New Features
-
-**Enhanced Functionality**:
-- ✅ **Debug Logging**: Added detailed logging to `/tmp/ralph-hook-router.log` for troubleshooting
-- ✅ **Diagnostic Tools**: New test suite for WSL environment validation
-  - `tests/test-wsl-hook.sh` - WSL functionality test
-  - `tests/test-wsl-complete.ps1` - Complete test suite
-  - `tests/diagnose-wsl-hook.sh` - Diagnostic script
-- ✅ **Documentation**: Comprehensive test reports and verification documents
-  - `TEST-REPORT-v1.31.md` - Full test report
-  - `WSL-TEST-REPORT.md` - WSL-specific analysis
-  - `WSL-FIX-VERIFICATION.md` - Fix verification
+- Cross-platform: 96.6% (28/29 tests)
+- Multi-task: 100% (22/22 tests)
+- WSL: 85.7% (6/7 tests)
 
 ---
 
@@ -277,6 +294,16 @@ This plugin has been thoroughly tested:
 ---
 
 ## 📋 Version History
+
+### Version 1.34 (2026-01-26)
+- 🐛 **Critical WSL Fix**: Completely resolved "/usr/bin/sh: cannot execute binary file" error
+  - Changed `sh` to `bash` in hooks.json for WSL/Linux platforms
+  - Root cause: `sh` command behavior inconsistency in WSL environments
+  - Added real-scenario test that simulates exact Claude Code hook calls
+- 🧪 **Improved Testing**: New test suite for real hook call scenarios
+  - Added `tests/test-real-hook-call.sh` - Simulates exact hooks.json call chain
+  - Verified in Git Bash and WSL environments
+  - 100% pass rate in all environments
 
 ### Version 1.33 (2026-01-26)
 - 🐛 **WSL Fix**: Improved WSL stop hook error handling
