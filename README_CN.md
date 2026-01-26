@@ -1,6 +1,6 @@
 # Ralph Wiggum 插件 - 跨平台版本
 
-**版本 1.30** | [English](README.md) | 中文文档
+**版本 1.31** | [English](README.md) | 中文文档
 
 > 全面支持 Windows、WSL、macOS 和 Linux 的跨平台 Ralph Wiggum 插件。实现 Ralph 技术 - 用于迭代开发的连续自引用 AI 循环。
 
@@ -134,12 +134,22 @@ Ralph 是一种基于连续 AI 代理循环的开发方法论。本插件使用 
 ### `/ralph-smart`（推荐）
 启动智能 Ralph 循环，自动完成检测。
 
-**单任务**：
+**使用方式**：
+
+1. **单任务（直接命令）**：
 ```bash
-/ralph-smart "<提示>"
+/ralph-smart "实现用户认证"
+/ralph-smart "修复 login.js 中的 bug"
+/ralph-smart "添加暗黑模式支持"
 ```
 
-**多任务**（v1.30 新增）：
+2. **单任务（从文件）**：
+```bash
+/ralph-smart task.txt
+/ralph-smart prompt.md
+```
+
+3. **多任务（v1.30 新增）**：
 ```bash
 /ralph-smart tasks.md
 ```
@@ -155,22 +165,7 @@ Ralph 是一种基于连续 AI 代理循环的开发方法论。本插件使用 
 
 **注意**：`/ralph-smart` 不接受 `--max-iterations` 参数。使用 `/ralph-smart-setmaxiterations` 配置默认值（默认：10 次迭代）。
 
-### `/ralph-loop`
-启动基本的 Ralph 循环，手动完成。
-
-**语法**：
-```bash
-/ralph-loop "<提示>" --max-iterations <次数> --completion-promise "<文本>"
-```
-
-**选项**：
-- `--max-iterations <n>` - 在 N 次迭代后停止（默认：无限制）
-- `--completion-promise <text>` - 表示完成的短语
-
-**示例**：
-```bash
-/ralph-loop "构建待办事项 API。完成时输出 DONE。" --completion-promise "DONE" --max-iterations 30
-```
+---
 
 ### `/ralph-smart-setmaxiterations`（v1.30 新增）
 设置 `/ralph-smart` 命令的默认最大迭代次数。
@@ -194,6 +189,27 @@ Ralph 是一种基于连续 AI 代理循环的开发方法论。本插件使用 
 - 存储位置：`~/.claude/ralph-config.json`
 
 **注意**：此设置仅影响 `/ralph-smart` 命令。`/ralph-loop` 命令需要显式指定 `--max-iterations` 参数。
+
+---
+
+### `/ralph-loop`
+启动基本的 Ralph 循环，手动完成。
+
+**语法**：
+```bash
+/ralph-loop "<提示>" --max-iterations <次数> --completion-promise "<文本>"
+```
+
+**选项**：
+- `--max-iterations <n>` - 在 N 次迭代后停止（默认：无限制）
+- `--completion-promise <text>` - 表示完成的短语
+
+**示例**：
+```bash
+/ralph-loop "构建待办事项 API。完成时输出 DONE。" --completion-promise "DONE" --max-iterations 30
+```
+
+---
 
 ### `/cancel-ralph`
 取消当前的 Ralph 循环。
@@ -268,6 +284,19 @@ Ralph 是一种基于连续 AI 代理循环的开发方法论。本插件使用 
 ---
 
 ## 📋 版本历史
+
+### 版本 1.31（2026-01-26）
+- 📚 **改进文档**：重新组织命令文档，提高清晰度
+  - `/ralph-smart-setmaxiterations` 现在紧跟在 `/ralph-smart` 后面
+  - 添加单任务（直接命令）的明确示例
+  - 添加单任务（从文件）的明确示例
+  - 明确多任务使用方式
+- 🧹 **项目清理**：删除过期和临时文件
+  - 删除 6 个过期测试报告
+  - 删除 7 个临时修复文档
+  - 删除 2 个过期版本说明（v1.0.2, v1.20）
+  - 删除备份和配置文件
+  - 精简项目结构，提高可维护性
 
 ### 版本 1.30（2026-01-26）
 - ✨ **新增**：多任务支持，自动任务切换

@@ -5,6 +5,52 @@ All notable changes to the Ralph Wiggum plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.31] - 2026-01-26
+
+### Changed
+- **Documentation Improvements**: Reorganized command documentation for better clarity
+  - Moved `/ralph-smart-setmaxiterations` directly after `/ralph-smart` for easier reference
+  - Added explicit examples for single task (direct command) usage
+  - Added explicit examples for single task (from file) usage
+  - Clarified multi-task usage patterns
+  - Improved command section organization in README
+
+### Removed
+- **Project Cleanup**: Removed outdated and temporary files to streamline project structure
+  - Removed 6 outdated test reports from `tests/reports/`:
+    - COMPLETENESS-VERIFICATION.md
+    - COMPLETION-REPORT.md
+    - FINAL-REPORT.md
+    - TEST-REPORT-GITBASH.md
+    - test-results.md
+    - VERIFICATION-REPORT.md
+  - Removed 7 temporary fix documentation files from root:
+    - FIXES-SUMMARY.md
+    - FIXES-VERIFICATION.md
+    - COMPLETE-SOLUTION.md
+    - FINAL-FIX-REPORT.md
+    - SOURCE-CODE-FIX.md
+    - TEST-ANALYSIS.md
+    - CLEANUP-REPORT.md
+  - Removed duplicate documentation:
+    - MULTI-TASK-IMPLEMENTATION.md (content preserved in docs/)
+  - Removed outdated release notes:
+    - docs/RELEASE-v1.0.2.md
+    - docs/RELEASE-v1.20.md
+  - Removed backup and configuration files:
+    - hooks/hooks.json.backup
+    - .claude/settings.json
+    - .claude/settings.local.json
+  - Removed outdated tracking documents:
+    - ISSUES-TRACKING.md
+    - archive/NEXT-STEPS.md
+
+### Verified
+- ✅ `/ralph-smart` supports single task (direct command) mode
+- ✅ `/ralph-smart` supports single task (from file) mode
+- ✅ `/ralph-smart` supports multi-task mode
+- ✅ All core functionality preserved after cleanup
+
 ## [1.30] - 2026-01-26
 
 ### Added

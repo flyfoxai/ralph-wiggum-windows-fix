@@ -1,6 +1,6 @@
 # Ralph Wiggum Plugin - Cross-Platform Edition
 
-**Version 1.30** | [中文文档](README_CN.md) | English
+**Version 1.31** | [中文文档](README_CN.md) | English
 
 > Cross-platform Ralph Wiggum plugin with comprehensive Windows, WSL, macOS, and Linux support. Implements the Ralph technique - continuous self-referential AI loops for iterative development.
 
@@ -134,12 +134,22 @@ Install via Claude Code plugin marketplace:
 ### `/ralph-smart` (Recommended)
 Start an intelligent Ralph loop with automatic completion detection.
 
-**Single Task**:
+**Usage**:
+
+1. **Single Task (Direct Command)**:
 ```bash
-/ralph-smart "<prompt>"
+/ralph-smart "Implement user authentication"
+/ralph-smart "Fix the bug in login.js"
+/ralph-smart "Add dark mode support"
 ```
 
-**Multi-Task** (NEW in v1.30):
+2. **Single Task (From File)**:
+```bash
+/ralph-smart task.txt
+/ralph-smart prompt.md
+```
+
+3. **Multi-Task (NEW in v1.30)**:
 ```bash
 /ralph-smart tasks.md
 ```
@@ -155,22 +165,7 @@ Start an intelligent Ralph loop with automatic completion detection.
 
 **Note**: `/ralph-smart` does not accept `--max-iterations` parameter. Use `/ralph-smart-setmaxiterations` to configure the default value (default: 10 iterations).
 
-### `/ralph-loop`
-Start a basic Ralph loop with manual completion.
-
-**Syntax**:
-```bash
-/ralph-loop "<prompt>" --max-iterations <n> --completion-promise "<text>"
-```
-
-**Options**:
-- `--max-iterations <n>` - Stop after N iterations (default: unlimited)
-- `--completion-promise <text>` - Phrase that signals completion
-
-**Example**:
-```bash
-/ralph-loop "Build a todo API. Output DONE when complete." --completion-promise "DONE" --max-iterations 30
-```
+---
 
 ### `/ralph-smart-setmaxiterations` (NEW in v1.30)
 Set the default maximum iterations for `/ralph-smart` command.
@@ -194,6 +189,27 @@ Set the default maximum iterations for `/ralph-smart` command.
 - Stored in: `~/.claude/ralph-config.json`
 
 **Note**: This setting only affects `/ralph-smart`. The `/ralph-loop` command requires explicit `--max-iterations` parameter.
+
+---
+
+### `/ralph-loop`
+Start a basic Ralph loop with manual completion.
+
+**Syntax**:
+```bash
+/ralph-loop "<prompt>" --max-iterations <n> --completion-promise "<text>"
+```
+
+**Options**:
+- `--max-iterations <n>` - Stop after N iterations (default: unlimited)
+- `--completion-promise <text>` - Phrase that signals completion
+
+**Example**:
+```bash
+/ralph-loop "Build a todo API. Output DONE when complete." --completion-promise "DONE" --max-iterations 30
+```
+
+---
 
 ### `/cancel-ralph`
 Cancel the current Ralph loop.
@@ -268,6 +284,19 @@ This plugin has been thoroughly tested:
 ---
 
 ## 📋 Version History
+
+### Version 1.31 (2026-01-26)
+- 📚 **Improved Documentation**: Reorganized command documentation for better clarity
+  - `/ralph-smart-setmaxiterations` now placed directly after `/ralph-smart`
+  - Added explicit examples for single task (direct command) usage
+  - Added explicit examples for single task (from file) usage
+  - Clarified multi-task usage
+- 🧹 **Project Cleanup**: Removed outdated and temporary files
+  - Removed 6 outdated test reports
+  - Removed 7 temporary fix documentation files
+  - Removed 2 outdated release notes (v1.0.2, v1.20)
+  - Removed backup and configuration files
+  - Streamlined project structure for better maintainability
 
 ### Version 1.30 (2026-01-26)
 - ✨ **NEW**: Multi-task support with automatic task switching
