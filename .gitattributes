@@ -1,0 +1,5 @@
+# Shell scripts must use LF line endings for WSL compatibility
+*.sh text eol=lf
+hooks/*.sh text eol=lf
+scripts/*.sh text eol=lf
+tests/*.sh text eol=lf
