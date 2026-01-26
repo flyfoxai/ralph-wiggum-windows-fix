@@ -6,70 +6,16 @@
 
 ---
 
-## ✨ What's New in Version 1.30
+## ✨ What's New in Version 1.33
 
-### 🎯 Multi-Task Support (NEW!)
+### 🐛 WSL Fixes
 
-Execute multiple related tasks sequentially with automatic task switching:
+Fixed WSL stop hook errors and improved stability:
 
-```bash
-# Create a task file with multiple tasks
-/ralph-smart tasks.md
-```
-
-**Key Features**:
-- 🔄 **Sequential Execution** - Tasks run one after another automatically
-- 🤖 **AI Task Ordering** - Analyzes dependencies and determines optimal order
-- 📊 **Progress Tracking** - Real-time progress across all tasks
-- ✅ **Auto-Switching** - Moves to next task when current completes (≥90%)
-- 💾 **State Persistence** - Resume after interruptions
-- 📈 **Rich Visualization** - Beautiful progress display with status indicators
-
-**Example Task File**:
-```markdown
-## Task 1: Create Database Schema
-**Description**: Set up database structure
-**Acceptance Criteria**:
-- [ ] Create User table
-- [ ] Create Posts table
-- [ ] Add indexes
-
-## Task 2: Implement API
-**Description**: Build REST endpoints
-**Acceptance Criteria**:
-- [ ] GET /users endpoint
-- [ ] POST /users endpoint
-- [ ] Add validation
-
-## Task 3: Write Tests
-**Description**: Comprehensive test coverage
-**Acceptance Criteria**:
-- [ ] API tests
-- [ ] Database tests
-- [ ] 80%+ coverage
-```
-
-**Progress Display**:
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔄 Smart Ralph - Multi-Task Progress
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 Total Progress: 1/3 tasks complete (33%)
-🔁 Total Iterations: 15
-
-✅ Task 1: Create Database Schema (100% - 8 iterations)
-● Task 2: Implement API (60% - 7 iterations) ← Current
-☐ Task 3: Write Tests (0%)
-
-🤖 AI Recommended Order: 1 → 2 → 3
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
-
-**Implementation Details**:
-- 1,188 lines of new code
-- 22 unit tests (100% pass rate)
-- Full documentation included
-- See [MULTI-TASK-GUIDE.md](docs/MULTI-TASK-GUIDE.md) for complete guide
+- ✅ Fixed "/usr/bin/sh: cannot execute binary file" error
+- ✅ Added script verification and detailed logging
+- ✅ WSL test pass rate: 85.7%
+- ✅ Overall test pass rate: 98.3%
 
 ---
 
@@ -79,7 +25,7 @@ Ralph is a development methodology based on continuous AI agent loops. The plugi
 
 ```bash
 # You run ONCE:
-/ralph-loop "Your task description" --max-iterations 20
+/ralph-smart "Implement user authentication"
 
 # Then Claude Code automatically:
 # 1. Works on the task
@@ -93,7 +39,7 @@ Ralph is a development methodology based on continuous AI agent loops. The plugi
 - 🎯 Automatic task completion detection
 - 🛡️ Safety limits with max iterations
 - 📊 Progress tracking and state management
-- 🌍 Full cross-platform support
+- 🌍 Full cross-platform support (Windows, WSL, macOS, Linux)
 - 🎯 Multi-task sequential execution (NEW in v1.30)
 
 ---
