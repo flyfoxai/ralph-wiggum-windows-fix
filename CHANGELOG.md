@@ -28,6 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Verifies log file creation and content
   - 100% pass rate in Git Bash and WSL
 
+### Notes
+- Previous tests did not simulate the real hook call chain, so failures slipped through.
+- Real-scenario tests now cover the exact invocation path used by Claude Code.
+
 ### Verified
 - ✅ Git Bash: 100% pass rate
 - ✅ WSL: 100% pass rate
@@ -151,6 +155,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ✅ 100% multi-task test pass rate (22/22 tests)
 - ✅ 93.1% cross-platform test pass rate (27/29 tests)
 - ✅ Full backward compatibility with v1.20
+
+## [1.20] - 2026-01-23
+
+### Added
+- Cross-platform support (Windows, WSL, macOS, Linux)
+- Smart Ralph loop with intelligent completion detection
+- Enhanced hooks configuration
+- Comprehensive testing suite (93.1% pass rate)
 
 ## [1.0.2] - 2026-01-25
 
