@@ -156,6 +156,10 @@ bash ./hooks/detect-environment.sh env
 
 # 5. 测试路由器
 bash ./hooks/stop-hook-router.sh
+
+# 6. 模拟 hooks.json 调用 (Windows 路径)
+export CLAUDE_PLUGIN_ROOT="$(pwd)"
+bash -lc 'ROOT="$CLAUDE_PLUGIN_ROOT"; if [ "${ROOT#/}" = "$ROOT" ]; then if command -v wslpath >/dev/null 2>&1; then ROOT=$(wslpath -a "$ROOT"); elif command -v cygpath >/dev/null 2>&1; then ROOT=$(cygpath -u "$ROOT"); fi; fi; exec bash "$ROOT/hooks/stop-hook-router.sh"'
 ```
 
 #### 预期结果
@@ -193,7 +197,7 @@ sh -n ./hooks/stop-hook-posix.sh
 sh ./hooks/detect-environment.sh env
 
 # 4. 测试路由器
-sh ./hooks/stop-hook-router.sh
+bash ./hooks/stop-hook-router.sh
 ```
 
 #### 预期结果
@@ -232,7 +236,7 @@ sh -n ./hooks/stop-hook-posix.sh
 sh ./hooks/detect-environment.sh env
 
 # 5. 测试路由器
-sh ./hooks/stop-hook-router.sh
+bash ./hooks/stop-hook-router.sh
 ```
 
 #### 预期结果
@@ -275,8 +279,11 @@ sh ./hooks/detect-environment.sh env
 # Windows
 .\hooks\stop-hook-router.ps1
 
-# Unix (WSL/Git Bash/macOS/Linux)
-sh ./hooks/stop-hook-router.sh
+# Unix (macOS/Linux)
+bash ./hooks/stop-hook-router.sh
+
+# Unix (WSL/Git Bash, Windows 路径)
+bash -lc 'ROOT="$CLAUDE_PLUGIN_ROOT"; if [ "${ROOT#/}" = "$ROOT" ]; then if command -v wslpath >/dev/null 2>&1; then ROOT=$(wslpath -a "$ROOT"); elif command -v cygpath >/dev/null 2>&1; then ROOT=$(cygpath -u "$ROOT"); fi; fi; exec bash "$ROOT/hooks/stop-hook-router.sh"'
 ```
 
 **预期行为**:
@@ -417,5 +424,5 @@ time sh ./hooks/detect-environment.sh env
 
 ---
 
-**最后更新**: 2026-01-23
-**版本**: 1.0
+**最后更新**: 2026-01-27
+**版本**: 1.1

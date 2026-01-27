@@ -5,6 +5,14 @@ All notable changes to the Ralph Wiggum plugin will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.35] - 2026-01-26
+
+### Fixed
+- **Stop Hook Path Translation**: Prevents bash from failing on Windows paths when running under WSL/Git Bash
+  - Added `wslpath`/`cygpath` conversion before invoking `stop-hook-router.sh`
+  - Updated PowerShell router to dispatch POSIX hooks with converted paths
+  - Updated real-scenario hook call test to match the new invocation
+
 ## [1.34] - 2026-01-26
 
 ### Fixed

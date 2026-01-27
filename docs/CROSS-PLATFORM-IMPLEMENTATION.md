@@ -322,7 +322,7 @@ cp hooks/hooks-enhanced.json hooks/hooks.json
           },
           {
             "type": "command",
-            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook-router.sh\"",
+            "command": "bash -lc 'ROOT=\"$CLAUDE_PLUGIN_ROOT\"; if [ \"${ROOT#/}\" = \"$ROOT\" ]; then if command -v wslpath >/dev/null 2>&1; then ROOT=$(wslpath -a \"$ROOT\"); elif command -v cygpath >/dev/null 2>&1; then ROOT=$(cygpath -u \"$ROOT\"); fi; fi; exec bash \"$ROOT/hooks/stop-hook-router.sh\"'",
             "platforms": ["darwin", "linux"]
           }
         ]

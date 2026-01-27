@@ -1,8 +1,20 @@
 # Ralph Wiggum 插件 - 跨平台版本
 
-**版本 1.34** | [English](README.md) | 中文文档
+**版本 1.35** | [English](README.md) | 中文文档
 
 > 全面支持 Windows、WSL、macOS 和 Linux 的跨平台 Ralph Wiggum 插件。实现 Ralph 技术 - 用于迭代开发的连续自引用 AI 循环。
+
+---
+
+## ✨ 版本 1.35 更新内容
+
+### Stop Hook 路径转换修复
+
+**解决 WSL/Git Bash 下的 bash 路径错误**：
+- ✅ 在执行 `stop-hook-router.sh` 前增加 Windows 路径转换（`wslpath` / `cygpath`）
+- ✅ 避免 `/bin/bash: C:\...: No such file or directory` 报错
+- ✅ 改进 PowerShell 路由器，派发 POSIX hook 时先转换路径
+- ✅ 更新真实场景测试，匹配新的 hook 调用方式
 
 ---
 
@@ -299,6 +311,12 @@ Ralph 是一种基于连续 AI 代理循环的开发方法论。本插件使用 
 ---
 
 ## 📋 版本历史
+
+### 版本 1.35（2026-01-26）
+- 🐛 **Stop Hook 路径修复**：解决 Windows + WSL/Git Bash 下的 bash 路径错误
+  - 在执行 `stop-hook-router.sh` 前增加 `wslpath`/`cygpath` 路径转换
+  - 改进 PowerShell 路由器，派发 POSIX hook 时先转换路径
+  - 更新真实 hook 调用测试，匹配新的调用方式
 
 ### 版本 1.34（2026-01-26）
 - 🐛 **关键 WSL 修复**：彻底解决 "/usr/bin/sh: cannot execute binary file" 错误

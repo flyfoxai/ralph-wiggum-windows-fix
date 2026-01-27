@@ -1,8 +1,20 @@
 # Ralph Wiggum Plugin - Cross-Platform Edition
 
-**Version 1.34** | [中文文档](README_CN.md) | English
+**Version 1.35** | [中文文档](README_CN.md) | English
 
 > Cross-platform Ralph Wiggum plugin with comprehensive Windows, WSL, macOS, and Linux support. Implements the Ralph technique - continuous self-referential AI loops for iterative development.
+
+---
+
+## ✨ What's New in Version 1.35
+
+### Stop Hook Path Translation Fix
+
+**Resolved bash path errors in WSL/Git Bash**:
+- ✅ Adds Windows path translation (`wslpath` / `cygpath`) before running `stop-hook-router.sh`
+- ✅ Prevents `/bin/bash: C:\...: No such file or directory` failures
+- ✅ Improves PowerShell router to dispatch POSIX hooks with converted paths
+- ✅ Updates real-scenario test to mirror the new hook invocation
 
 ---
 
@@ -294,6 +306,12 @@ This plugin has been thoroughly tested:
 ---
 
 ## 📋 Version History
+
+### Version 1.35 (2026-01-26)
+- 🐛 **Stop Hook Path Fix**: Prevents bash path errors on Windows + WSL/Git Bash
+  - Adds `wslpath`/`cygpath` translation before running `stop-hook-router.sh`
+  - Updates PowerShell router to convert Windows paths for POSIX hooks
+  - Refreshes real hook call test to match the new invocation
 
 ### Version 1.34 (2026-01-26)
 - 🐛 **Critical WSL Fix**: Completely resolved "/usr/bin/sh: cannot execute binary file" error

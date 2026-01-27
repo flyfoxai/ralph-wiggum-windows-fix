@@ -18,6 +18,63 @@ function Write-DebugInfo {
     }
 }
 
+function Resolve-PosixPath {
+    param(
+        [string]$Path,
+        [string]$Target
+    )
+
+    if ($Path -match '^[\\/]' -or $Path -match '^/mnt/' -or $Path -match '^/cygdrive/' -or $Path -match '^/[a-zA-Z]/') {
+        return $Path
+    }
+
+    switch ($Target) {
+        "wsl" {
+            $wslCmd = Get-Command wsl -ErrorAction SilentlyContinue
+            if ($wslCmd) {
+                try {
+                    $converted = wsl wslpath -a -- $Path 2>$null
+                    if ($LASTEXITCODE -eq 0 -and $converted) {
+                        return $converted.Trim()
+                    }
+                } catch {
+                    Write-DebugInfo "WSL path conversion failed: $_"
+                }
+            }
+        }
+        "gitbash" {
+            $bashCmd = Get-Command bash -ErrorAction SilentlyContinue
+            if ($bashCmd -and $bashCmd.Source -notmatch 'System32\\bash.exe') {
+                try {
+                    $escaped = $Path.Replace('"', '\"')
+                    $converted = & $bashCmd.Source -lc "command -v cygpath >/dev/null 2>&1 && cygpath -u \"$escaped\""
+                    if ($LASTEXITCODE -eq 0 -and $converted) {
+                        return $converted.Trim()
+                    }
+                } catch {
+                    Write-DebugInfo "Git Bash path conversion failed: $_"
+                }
+            }
+        }
+        "cygwin" {
+            $bashCmd = Get-Command bash -ErrorAction SilentlyContinue
+            if ($bashCmd -and $bashCmd.Source -notmatch 'System32\\bash.exe') {
+                try {
+                    $escaped = $Path.Replace('"', '\"')
+                    $converted = & $bashCmd.Source -lc "command -v cygpath >/dev/null 2>&1 && cygpath -u \"$escaped\""
+                    if ($LASTEXITCODE -eq 0 -and $converted) {
+                        return $converted.Trim()
+                    }
+                } catch {
+                    Write-DebugInfo "Cygwin path conversion failed: $_"
+                }
+            }
+        }
+    }
+
+    return $Path
+}
+
 function Detect-Environment {
     Write-DebugInfo "Detecting environment..."
 
@@ -112,15 +169,18 @@ switch ($env) {
         # Running inside WSL but called from PowerShell (unusual case)
         Write-Host "📍 Detected WSL environment, using POSIX-compatible stop-hook" -ForegroundColor Green
 
-        if ($shell -eq "wsl") {
-            # Use WSL to execute the script
-            $shScript = Join-Path $ScriptDir "stop-hook-posix.sh"
-            wsl sh $shScript
+        $shScript = Join-Path $ScriptDir "stop-hook-posix.sh"
+        $bashCmd = Get-Command bash -ErrorAction SilentlyContinue
+        $bashIsWsl = $bashCmd -and $bashCmd.Source -match 'System32\\bash.exe'
+        $posixPath = Resolve-PosixPath -Path $shScript -Target "wsl"
+
+        if ($shell -eq "wsl" -or $bashIsWsl) {
+            # Use WSL to execute the script with a converted path
+            wsl bash $posixPath
             exit $LASTEXITCODE
         } elseif ($shell -eq "bash" -or $shell -eq "sh") {
-            # Use available shell
-            $shScript = Join-Path $ScriptDir "stop-hook-posix.sh"
-            & $shell $shScript
+            # Use bash (prefer bash over sh)
+            & bash $posixPath
             exit $LASTEXITCODE
         } else {
             Write-Error "No suitable shell found for WSL environment"
@@ -134,7 +194,8 @@ switch ($env) {
 
         if ($shell -eq "bash" -or $shell -eq "sh") {
             $shScript = Join-Path $ScriptDir "stop-hook-posix.sh"
-            & $shell $shScript
+            $posixPath = Resolve-PosixPath -Path $shScript -Target "gitbash"
+            & bash $posixPath
             exit $LASTEXITCODE
         } else {
             # Fallback to PowerShell
@@ -151,7 +212,8 @@ switch ($env) {
 
         if ($shell -eq "bash" -or $shell -eq "sh") {
             $shScript = Join-Path $ScriptDir "stop-hook-posix.sh"
-            & $shell $shScript
+            $posixPath = Resolve-PosixPath -Path $shScript -Target "cygwin"
+            & bash $posixPath
             exit $LASTEXITCODE
         } else {
             Write-Error "No suitable shell found for Cygwin environment"

@@ -62,7 +62,7 @@ sh stop-hook-posix.sh
 
 **WSL 特殊考虑**:
 1. **Shell 可用性**: WSL 可能只有 `sh`,没有 `bash`
-2. **路径转换**: Windows 路径需要转换为 WSL 路径
+2. **路径转换**: Windows 路径需要转换为 WSL 路径（hooks.json 调用已通过 `wslpath` 处理）
 3. **性能**: WSL2 比 WSL1 性能更好
 
 **检测示例**:
@@ -138,7 +138,7 @@ bash stop-hook-posix.sh
 
 **Git Bash 特殊考虑**:
 1. **路径格式**: 使用 Unix 风格路径 (`/c/Users/...`)
-2. **工具可用性**: 大部分 Unix 工具可用
+2. **路径转换**: hooks.json 调用会用 `cygpath` 转换 Windows 路径
 3. **性能**: 比 WSL 稍慢,但比 Cygwin 快
 
 ---
@@ -224,6 +224,14 @@ case "$ENV" in
         bash stop-hook-posix.sh
         ;;
 esac
+```
+
+#### hooks.json 调用路径转换 (WSL/Git Bash)
+
+当 `CLAUDE_PLUGIN_ROOT` 为 Windows 路径时,需要先转换为 POSIX 路径再执行路由器:
+
+```bash
+bash -lc 'ROOT="$CLAUDE_PLUGIN_ROOT"; if [ "${ROOT#/}" = "$ROOT" ]; then if command -v wslpath >/dev/null 2>&1; then ROOT=$(wslpath -a "$ROOT"); elif command -v cygpath >/dev/null 2>&1; then ROOT=$(cygpath -u "$ROOT"); fi; fi; exec bash "$ROOT/hooks/stop-hook-router.sh"'
 ```
 
 ---

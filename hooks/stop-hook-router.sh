@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Smart Stop Hook Router
 # Automatically detects environment and routes to the appropriate stop-hook implementation
 # Supports: Windows (native), WSL1/2, Linux, macOS, Git Bash, Cygwin
@@ -94,31 +94,38 @@ verify_script() {
 
 case "$ENV" in
     wsl)
-        # WSL environment - use POSIX-compatible version with sh
+        # WSL environment - use POSIX-compatible version
         echo "📍 Using POSIX-compatible stop-hook for WSL" >&2
         TARGET_SCRIPT="$SCRIPT_DIR/stop-hook-posix.sh"
         verify_script "$TARGET_SCRIPT"
-        log_debug "Executing: $SHELL_TYPE $TARGET_SCRIPT"
         if [ "$SHELL_TYPE" = "bash" ]; then
+            log_debug "Executing: bash $TARGET_SCRIPT"
             exec bash "$TARGET_SCRIPT"
         else
+            log_debug "Executing: sh $TARGET_SCRIPT"
             exec sh "$TARGET_SCRIPT"
         fi
         ;;
 
     linux|darwin)
-        # Native Linux or macOS - prefer bash, fallback to POSIX
-        echo "📍 Using stop-hook for $ENV" >&2
+        # Native Linux or macOS - prefer bash version if available
         if [ "$SHELL_TYPE" = "bash" ] && [ -f "$SCRIPT_DIR/stop-hook.sh" ]; then
+            echo "📍 Using bash stop-hook for $ENV" >&2
             TARGET_SCRIPT="$SCRIPT_DIR/stop-hook.sh"
             verify_script "$TARGET_SCRIPT"
             log_debug "Executing: bash $TARGET_SCRIPT"
             exec bash "$TARGET_SCRIPT"
         else
+            echo "📍 Using POSIX stop-hook for $ENV" >&2
             TARGET_SCRIPT="$SCRIPT_DIR/stop-hook-posix.sh"
             verify_script "$TARGET_SCRIPT"
-            log_debug "Executing: sh $TARGET_SCRIPT"
-            exec sh "$TARGET_SCRIPT"
+            if [ "$SHELL_TYPE" = "bash" ]; then
+                log_debug "Executing: bash $TARGET_SCRIPT"
+                exec bash "$TARGET_SCRIPT"
+            else
+                log_debug "Executing: sh $TARGET_SCRIPT"
+                exec sh "$TARGET_SCRIPT"
+            fi
         fi
         ;;
 
@@ -127,10 +134,11 @@ case "$ENV" in
         echo "📍 Using POSIX-compatible stop-hook for Git Bash" >&2
         TARGET_SCRIPT="$SCRIPT_DIR/stop-hook-posix.sh"
         verify_script "$TARGET_SCRIPT"
-        log_debug "Executing: $SHELL_TYPE $TARGET_SCRIPT"
         if [ "$SHELL_TYPE" = "bash" ]; then
+            log_debug "Executing: bash $TARGET_SCRIPT"
             exec bash "$TARGET_SCRIPT"
         else
+            log_debug "Executing: sh $TARGET_SCRIPT"
             exec sh "$TARGET_SCRIPT"
         fi
         ;;
@@ -140,7 +148,12 @@ case "$ENV" in
         echo "⚠️  Unknown environment, attempting POSIX-compatible version" >&2
         TARGET_SCRIPT="$SCRIPT_DIR/stop-hook-posix.sh"
         verify_script "$TARGET_SCRIPT"
-        log_debug "Executing: sh $TARGET_SCRIPT"
-        exec sh "$TARGET_SCRIPT"
+        if [ "$SHELL_TYPE" = "bash" ]; then
+            log_debug "Executing: bash $TARGET_SCRIPT"
+            exec bash "$TARGET_SCRIPT"
+        else
+            log_debug "Executing: sh $TARGET_SCRIPT"
+            exec sh "$TARGET_SCRIPT"
+        fi
         ;;
 esac

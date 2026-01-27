@@ -141,6 +141,34 @@ if ($allCovered) {
 }
 Write-Host ""
 
+# 6. Path translation check for bash-in-Windows scenarios
+Write-Host "6. Path Translation Check (WSL/Git Bash)" -ForegroundColor Yellow
+$pathHandlingOk = $true
+foreach ($hookContainer in $stopHooks) {
+    if ($hookContainer.hooks) {
+        foreach ($hook in $hookContainer.hooks) {
+            if ($hook.platforms -and ($hook.platforms -contains "linux" -or $hook.platforms -contains "darwin")) {
+                $cmd = $hook.command
+                if ($cmd -notmatch "bash -lc") {
+                    Write-Host "   ✗ Expected bash -lc wrapper for Unix hook" -ForegroundColor Red
+                    $pathHandlingOk = $false
+                }
+                if ($cmd -notmatch "wslpath" -or $cmd -notmatch "cygpath") {
+                    Write-Host "   ✗ Expected wslpath/cygpath conversion in Unix hook" -ForegroundColor Red
+                    $pathHandlingOk = $false
+                }
+            }
+        }
+    }
+}
+
+if ($pathHandlingOk) {
+    Write-Host "   ✓ Unix hook includes path translation safeguards" -ForegroundColor Green
+} else {
+    exit 1
+}
+Write-Host ""
+
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "✅ Hooks configuration is valid!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan

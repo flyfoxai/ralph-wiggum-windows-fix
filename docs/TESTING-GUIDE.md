@@ -112,6 +112,10 @@ bash -n ./hooks/stop-hook-posix.sh
 
 # 4. 测试执行
 bash ./hooks/stop-hook-posix.sh
+
+# 5. hooks.json 调用模拟 (Windows 路径)
+export CLAUDE_PLUGIN_ROOT="$(pwd)"
+bash -lc 'ROOT="$CLAUDE_PLUGIN_ROOT"; if [ "${ROOT#/}" = "$ROOT" ]; then if command -v wslpath >/dev/null 2>&1; then ROOT=$(wslpath -a "$ROOT"); elif command -v cygpath >/dev/null 2>&1; then ROOT=$(cygpath -u "$ROOT"); fi; fi; exec bash "$ROOT/hooks/stop-hook-router.sh"'
 ```
 
 ---
@@ -138,6 +142,7 @@ bash ./hooks/stop-hook-posix.sh
 - [ ] 脚本语法有效 (`wsl sh -n script.sh`)
 - [ ] 环境检测返回 "wsl"
 - [ ] 路径转换正确 (Windows → WSL)
+- [ ] hooks.json 调用能通过 wslpath 转换路径
 - [ ] 脚本能在 WSL 中执行
 - [ ] jq 可用 (`wsl which jq`)
 
@@ -148,6 +153,7 @@ bash ./hooks/stop-hook-posix.sh
 - [ ] 脚本语法有效 (`bash -n script.sh`)
 - [ ] 环境检测返回 "gitbash"
 - [ ] MSYSTEM 环境变量存在
+- [ ] hooks.json 调用能通过 cygpath 转换路径
 - [ ] 脚本能在 Git Bash 中执行
 - [ ] jq 可用 (`bash -c "which jq"`)
 
@@ -299,8 +305,11 @@ wsl sh $wslPath
 # Windows 路由器
 .\hooks\stop-hook-router.ps1
 
-# Unix 路由器 (在 WSL/Git Bash 中)
-sh ./hooks/stop-hook-router.sh
+# Unix 路由器 (macOS/Linux)
+bash ./hooks/stop-hook-router.sh
+
+# Unix 路由器 (WSL/Git Bash, Windows 路径)
+bash -lc 'ROOT="$CLAUDE_PLUGIN_ROOT"; if [ "${ROOT#/}" = "$ROOT" ]; then if command -v wslpath >/dev/null 2>&1; then ROOT=$(wslpath -a "$ROOT"); elif command -v cygpath >/dev/null 2>&1; then ROOT=$(cygpath -u "$ROOT"); fi; fi; exec bash "$ROOT/hooks/stop-hook-router.sh"'
 ```
 
 ### Q3: 如何创建测试数据?
@@ -473,5 +482,5 @@ Set-Content -Path .claude\ralph-loop.local.md -Value $state
 
 ---
 
-**最后更新**: 2026-01-23
-**版本**: 1.0
+**最后更新**: 2026-01-27
+**版本**: 1.1

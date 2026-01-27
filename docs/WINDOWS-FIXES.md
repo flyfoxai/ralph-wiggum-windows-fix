@@ -11,7 +11,7 @@
 2. Windows doesn't natively execute `.sh` files
 3. When Claude Code tried to run the hook, Windows would open the file in a text editor instead of executing it
 
-**Solution:** Created a PowerShell version of the stop hook (`stop-hook.ps1`) and updated `hooks/hooks.json` to use platform-specific hooks.
+**Solution:** Created a PowerShell version of the stop hook (`stop-hook.ps1`) and updated `hooks/hooks.json` to use platform-specific hooks with a router.
 
 ### Problem 2: Argument Parsing Failure (FIXED)
 
@@ -43,8 +43,8 @@ bash "script.sh" 测试显示当前文件夹内容 --max-iterations 2
 
 1. **Created**: `hooks/stop-hook.ps1` - PowerShell version of the stop hook
 2. **Modified**: `hooks/hooks.json` - Updated to use platform-specific hooks:
-   - Windows (`win32`): Uses `stop-hook.ps1` with PowerShell
-   - macOS/Linux (`darwin`/`linux`): Uses original `stop-hook.sh` with Bash
+   - Windows (`win32`): Uses `stop-hook-router.ps1` with PowerShell
+   - macOS/Linux (`darwin`/`linux`): Uses `stop-hook-router.sh` with bash and path translation
 
 ### For Problem 2 (Argument Parsing):
 
@@ -63,12 +63,12 @@ bash "script.sh" 测试显示当前文件夹内容 --max-iterations 2
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook.ps1\"",
+            "command": "pwsh -NoProfile -ExecutionPolicy Bypass -File \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook-router.ps1\"",
             "platforms": ["win32"]
           },
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook.sh",
+            "command": "bash -lc 'ROOT=\"$CLAUDE_PLUGIN_ROOT\"; if [ \"${ROOT#/}\" = \"$ROOT\" ]; then if command -v wslpath >/dev/null 2>&1; then ROOT=$(wslpath -a \"$ROOT\"); elif command -v cygpath >/dev/null 2>&1; then ROOT=$(cygpath -u \"$ROOT\"); fi; fi; exec bash \"$ROOT/hooks/stop-hook-router.sh\"'",
             "platforms": ["darwin", "linux"]
           }
         ]

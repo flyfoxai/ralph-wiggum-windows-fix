@@ -11,11 +11,11 @@ export CLAUDE_PLUGIN_ROOT="$PLUGIN_ROOT"
 echo "Plugin root: $PLUGIN_ROOT"
 echo ""
 
-# Test 1: Simulate exact hook call from hooks.json
-echo "Test 1: Exact hooks.json call (bash)"
+# Test 1: Simulate exact hook call from hooks.json (with path translation wrapper)
+echo "Test 1: Exact hooks.json call (bash -lc wrapper)"
 TEST_INPUT='{"transcript_path": "/tmp/test-transcript.jsonl"}'
 
-if bash "${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook-router.sh" <<< "$TEST_INPUT" 2>&1 | head -10; then
+if bash -lc 'ROOT="$CLAUDE_PLUGIN_ROOT"; if [ "${ROOT#/}" = "$ROOT" ]; then if command -v wslpath >/dev/null 2>&1; then ROOT=$(wslpath -a "$ROOT"); elif command -v cygpath >/dev/null 2>&1; then ROOT=$(cygpath -u "$ROOT"); fi; fi; exec bash "$ROOT/hooks/stop-hook-router.sh"' <<< "$TEST_INPUT" 2>&1 | head -10; then
     echo "✅ Test 1 PASSED"
 else
     EXIT_CODE=$?
@@ -23,13 +23,13 @@ else
 fi
 echo ""
 
-# Test 2: Old problematic call (sh) - should we keep this working?
-echo "Test 2: Old call method (sh) - for compatibility"
-if sh "${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook-router.sh" <<< "$TEST_INPUT" 2>&1 | head -10; then
-    echo "✅ Test 2 PASSED (sh still works)"
+# Test 2: Direct bash call (legacy compatibility)
+echo "Test 2: Direct router call (bash)"
+if bash "${CLAUDE_PLUGIN_ROOT}/hooks/stop-hook-router.sh" <<< "$TEST_INPUT" 2>&1 | head -10; then
+    echo "✅ Test 2 PASSED"
 else
     EXIT_CODE=$?
-    echo "⚠️  Test 2 FAILED (sh doesn't work, but bash does)"
+    echo "⚠️  Test 2 FAILED"
 fi
 echo ""
 
